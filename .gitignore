@@ -1,0 +1,19 @@
+# ---------- 客户端（HarmonyOS）----------
+client/.hvigor/
+client/.idea/
+client/**/build/
+client/oh_modules/
+client/local.properties
+client/.cxx/
+
+# ---------- 服务端（Spring Boot）----------
+server/target/
+server/.idea/
+server/*.log
+server/boot.pid
+server/*.iml
+
+# ---------- 通用 ----------
+.DS_Store
+Thumbs.db
+*.tmp

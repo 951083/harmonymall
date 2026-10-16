@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>系统设计文档</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body {
+  margin: 0; padding: 40px 20px 80px;
+  background: #f2f4f7;
+  font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
+  color: #1f2328; font-size: 15px; line-height: 1.75;
+}
+main { max-width: 920px; margin: 0 auto; }
+h1 {
+  font-size: 26px; margin: 0 0 8px; padding-bottom: 14px;
+  border-bottom: 3px solid #2563eb; letter-spacing: .5px;
+}
+h2 {
+  font-size: 20px; margin: 42px 0 14px; padding-left: 10px;
+  border-left: 5px solid #2563eb; background: #eaf0fb;
+  padding-top: 4px; padding-bottom: 4px; border-radius: 0 6px 6px 0;
+}
+h3 { font-size: 17px; margin: 26px 0 10px; color: #1d4ed8; }
+p { margin: 10px 0; }
+blockquote {
+  margin: 14px 0; padding: 10px 16px; background: #fff8e6;
+  border-left: 4px solid #f0b429; border-radius: 0 6px 6px 0; color: #6b5b1e;
+}
+table {
+  border-collapse: collapse; width: 100%; margin: 14px 0 22px;
+  background: #fff; font-size: 14px;
+  box-shadow: 0 1px 3px rgba(16,24,40,.08); border-radius: 8px; overflow: hidden;
+}
+th {
+  background: #2563eb; color: #fff; font-weight: 600; text-align: left;
+  padding: 9px 12px; white-space: nowrap;
+}
+td { padding: 8px 12px; border-bottom: 1px solid #e5e9f0; vertical-align: top; }
+tr:nth-child(even) td { background: #f8fafc; }
+tr:last-child td { border-bottom: none; }
+code {
+  background: #eef1f5; border: 1px solid #dde3ea; border-radius: 4px;
+  padding: 1px 6px; font-size: 13px;
+  font-family: Consolas, "Courier New", monospace; color: #b42318;
+}
+pre { background: #262c36; color: #e6edf3; padding: 14px 16px; border-radius: 8px; overflow-x: auto; }
+pre code { background: none; border: none; color: inherit; padding: 0; }
+ul, ol { padding-left: 26px; }
+li { margin: 4px 0; }
+strong { color: #111827; }
+hr { border: none; border-top: 1px dashed #cbd5e1; margin: 34px 0; }
+a { color: #2563eb; }
+</style>
+</head>
+<body>
+<main>
+<h1>鸿蒙商城毕业设计 · 系统设计文档</h1>
+<blockquote>
+<p>版本：V1.0｜日期：2026-10-16｜配套文档：《需求分析报告》V1.0（2026-10-14）
+说明：本文档对应<strong>已实现并通过端到端联调</strong>的系统——客户端 19 个页面、服务端 10 个 Controller / 40 个接口、MySQL 16 张表。</p>
+</blockquote>
+<hr />
+<h2>1. 引言</h2>
+<h3>1.1 编写目的</h3>
+<p>本文档在《需求分析报告》的基础上，给出鸿蒙商城系统的<strong>详细设计</strong>：总体架构、客户端与服务端分层设计、数据库结构（ER 图 + 表结构）、接口设计、核心业务流程（订单状态机、下单、退款）以及关键技术方案。用于指导编码实现，并作为毕业论文"系统设计"章节的核心素材。</p>
+<h3>1.2 设计范围与依据</h3>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>设计范围</td>
+<td>HarmonyOS 客户端（ArkTS/ArkUI）+ Spring Boot 服务端 + MySQL/Redis 数据层</td>
+</tr>
+<tr>
+<td>设计依据</td>
+<td>《需求分析报告》V1.0；华为官方《购物商城应用案例》架构实践</td>
+</tr>
+<tr>
+<td>技术基线</td>
+<td>DevEco Studio 6.1.1（SDK 6.1.1/API 24）；Spring Boot 3.5 + JDK 17</td>
+</tr>
+<tr>
+<td>对应实现</td>
+<td>客户端工程 <code>HarmonyMall</code>；服务端工程 <code>harmonymall-server</code></td>
+</tr>
+</tbody>
+</table>
+<h3>1.3 术语与约定</h3>
+<table>
+<thead>
+<tr>
+<th>术语</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SPU / SKU</td>
+<td>商品与商品规格；一个 SPU 对应多个 SKU（如"颜色-尺码"组合）</td>
+</tr>
+<tr>
+<td>快照（snapshot）</td>
+<td>下单时把商品与地址的关键信息序列化为 JSON 存入订单，后续商品改价/改地址不影响历史订单</td>
+</tr>
+<tr>
+<td>逻辑删除</td>
+<td>行不物理删除，<code>deleted</code> 字段 0/1 标记，由 MyBatis-Plus 全局过滤</td>
+</tr>
+<tr>
+<td>金额单位</td>
+<td>一律为<strong>分</strong>（INT 存储），避免浮点误差</td>
+</tr>
+<tr>
+<td>状态码</td>
+<td>业务状态用 TINYINT 数值表示（如订单 0~6），口径见 7.3</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>2. 系统总体设计</h2>
+<h3>2.1 设计目标与原则</h3>
+<table>
+<thead>
+<tr>
+<th>原则</th>
+<th>落地方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>前后端分离</td>
+<td>客户端只通过 REST/JSON 与服务端交互，服务端不渲染任何页面</td>
+</tr>
+<tr>
+<td>分层清晰</td>
+<td>客户端"页面 → 公共层 → 模型"；服务端"Controller → Service → Mapper"</td>
+</tr>
+<tr>
+<td>统一约定</td>
+<td>统一响应体、统一错误码、统一分页结构、统一鉴权方式</td>
+</tr>
+<tr>
+<td>数据一致性优先</td>
+<td>订单链路全部放在数据库事务内；并发场景用 SQL 条件更新保证原子性</td>
+</tr>
+<tr>
+<td>演示可闭环</td>
+<td>支付、发货、退款等需要第三方的环节以"模拟实现"打通全链路（毕设范围）</td>
+</tr>
+</tbody>
+</table>
+<h3>2.2 总体架构</h3>
+<p><img alt="系统总体架构" src="设计图/架构图.svg" /></p>
+<p><em>图 2-1　系统总体架构图</em></p>
+<p>架构说明：</p>
+<ul>
+<li><strong>客户端层</strong>：HarmonyOS App（Stage 模型）。页面层 19 个页面；公共层含网络封装（HttpClient/Api）、登录态（AppStorage/UserStore）、格式化工具（FormatUtil）；模型层定义领域对象。</li>
+<li><strong>接口层</strong>：REST/JSON over HTTP，统一响应体 <code>{code, message, data}</code>；JWT 通过 <code>Authorization: Bearer</code> 头传递。</li>
+<li><strong>服务端层</strong>：Spring Boot 单体分层——Controller（参数校验/鉴权注入）→ Service（业务事务）→ Mapper（MyBatis-Plus）；横切能力有全局异常处理、JWT 拦截器、定时任务。</li>
+<li><strong>数据层</strong>：MySQL 8 持久化 16 张表；Redis 承担商品详情缓存、下单幂等令牌；商品图片作为静态资源（<code>/img/**</code>）由服务端直接托管。</li>
+</ul>
+<h3>2.3 技术选型（实际使用版本）</h3>
+<table>
+<thead>
+<tr>
+<th>端</th>
+<th>领域</th>
+<th>选型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>客户端</td>
+<td>系统/语言</td>
+<td>HarmonyOS NEXT（SDK 6.1.1 / API 24）+ ArkTS（strict）</td>
+</tr>
+<tr>
+<td>客户端</td>
+<td>UI / 模型</td>
+<td>ArkUI 声明式开发范式 + Stage 应用模型（UIAbility）</td>
+</tr>
+<tr>
+<td>客户端</td>
+<td>路由 / 状态</td>
+<td><code>@ohos.router</code>；V1 状态管理（@State/@StorageProp/@Watch）+ AppStorage 全局登录态</td>
+</tr>
+<tr>
+<td>客户端</td>
+<td>网络</td>
+<td><code>@ohos.net.http</code> 自封装（Promise 化、token 注入、40100 自动跳登录）</td>
+</tr>
+<tr>
+<td>服务端</td>
+<td>框架</td>
+<td>Spring Boot 3.5.4（JDK 17）</td>
+</tr>
+<tr>
+<td>服务端</td>
+<td>安全</td>
+<td>Spring Security + JWT（jjwt 0.12.6，有效期 24h）+ BCrypt</td>
+</tr>
+<tr>
+<td>服务端</td>
+<td>持久层</td>
+<td>MyBatis-Plus 3.5.7（分页插件、逻辑删除、条件更新）</td>
+</tr>
+<tr>
+<td>服务端</td>
+<td>存储</td>
+<td>MySQL 8.0（utf8mb4）+ Redis（缓存/幂等令牌）</td>
+</tr>
+<tr>
+<td>服务端</td>
+<td>文档</td>
+<td>springdoc-openapi（Swagger UI）</td>
+</tr>
+<tr>
+<td>服务端</td>
+<td>调度</td>
+<td>Spring Scheduling（订单超时关单/退款审核/自动收货）</td>
+</tr>
+</tbody>
+</table>
+<h3>2.4 部署与联调拓扑</h3>
+<table>
+<thead>
+<tr>
+<th>环节</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>开发部署</td>
+<td>服务端在本机 8080 启动；MySQL 3306 / Redis 6379 本机运行</td>
+</tr>
+<tr>
+<td>模拟器联调</td>
+<td>模拟器为 QEMU NAT 网络，经 <code>hdc rport tcp:8080 tcp:8080</code> 端口转发访问主机后端，客户端 <code>BASE_URL = http://127.0.0.1:8080/api</code></td>
+</tr>
+<tr>
+<td>真机联调</td>
+<td>与电脑同一局域网，<code>BASE_URL</code> 换成主机局域网 IP</td>
+</tr>
+<tr>
+<td>明文 HTTP</td>
+<td>HarmonyOS NEXT 默认禁明文，通过 <code>network_config.json</code>（<code>cleartextTrafficPermitted: true</code>）显式放行</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>3. 客户端设计</h2>
+<h3>3.1 页面结构与导航关系</h3>
+<p>客户端共 19 个页面，其中 <code>IndexPage</code> 为底部 Tab 容器（首页/分类/购物车/我的），其余为路由页面：</p>
+<table>
+<thead>
+<tr>
+<th>分类</th>
+<th>页面</th>
+<th>职责</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>容器</td>
+<td>IndexPage</td>
+<td>自定义 Tab 容器，承载四个主 Tab</td>
+</tr>
+<tr>
+<td>首页</td>
+<td>HomePage</td>
+<td>轮播、金刚区分类、推荐商品网格</td>
+</tr>
+<tr>
+<td>商品</td>
+<td>CategoryPage / SearchPage / DetailPage</td>
+<td>分类浏览（二级分组预览）、搜索（历史+热词）、详情（SKU/库存/收藏/评价）</td>
+</tr>
+<tr>
+<td>交易</td>
+<td>CartPage / OrderConfirmPage</td>
+<td>购物车（勾选/数量/售罄）、确认订单（地址+优惠券+幂等提交）</td>
+</tr>
+<tr>
+<td>订单</td>
+<td>OrderListPage / OrderDetailPage</td>
+<td>列表（状态 Tab/快捷操作）、详情（倒计时/支付/取消/退款/评价）</td>
+</tr>
+<tr>
+<td>账户</td>
+<td>LoginPage / RegisterPage / MePage / ProfileEditPage</td>
+<td>登录注册、个人中心、资料编辑</td>
+</tr>
+<tr>
+<td>资产</td>
+<td>FavoritePage / FootprintPage / CouponPage / MessagePage</td>
+<td>收藏、足迹、优惠券、消息</td>
+</tr>
+<tr>
+<td>地址</td>
+<td>AddressListPage / AddressEditPage</td>
+<td>地址管理（选择模式/默认/增删改）</td>
+</tr>
+</tbody>
+</table>
+<p>导航约定：详情类页面（DetailPage / OrderDetailPage 等）无系统标题栏，页内固定「← 返回」栏且<strong>置于加载态之外</strong>；二级页返回主列表后依赖 <code>onPageShow()</code> 或 <code>@Watch</code> 刷新。</p>
+<h3>3.2 工程分层与公共模块</h3>
+<pre><code>entry/src/main/ets/
+├── entryability/EntryAbility.ets     # 应用入口
+├── common/
+│   ├── AppConfig.ets                 # BASE_URL / IMG_BASE / PAGE_SIZE
+│   ├── network/HttpClient.ets        # @ohos.net.http 封装（token/错误码/泛型）
+│   ├── network/Api.ets               # 全部 40 个接口的客户端定义
+│   ├── store/UserStore.ets           # AppStorage 登录态读写
+│   └── utils/FormatUtil.ets          # 分→元、时间、订单状态、快照解析
+├── model/Models.ets                  # 领域模型 + 请求对象（20+）
+├── components/                       # EmptyView / LoadingView 等公共组件
+└── pages/                            # 19 个页面
+</code></pre>
+<h3>3.3 状态管理设计</h3>
+<table>
+<thead>
+<tr>
+<th>设计点</th>
+<th>做法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>登录态全局共享</td>
+<td>token/用户信息存 <code>AppStorage</code>（<strong>必须用 <code>setOrCreate</code></strong>，<code>set</code> 在 key 不存在时不生效）；子页面用 <code>@StorageProp('token') @Watch(...)</code> 感知登录态变化并在 <code>router.back()</code> 后自动刷新</td>
+</tr>
+<tr>
+<td>列表数据刷新</td>
+<td><code>@State</code> 只观测第一层——修改数组元素内部属性不触发渲染，<strong>统一"整体替换数组"</strong>（如购物车 <code>replaceItem()</code>）</td>
+</tr>
+<tr>
+<td>跨页数据传递</td>
+<td><code>router.pushUrl({ url, params })</code> 传参，<code>getParams()</code> 读取（如订单 id、分类 id）</td>
+</tr>
+<tr>
+<td>定时刷新</td>
+<td>订单列表 <code>onPageShow()</code> 重新拉取；待付款倒计时用 <code>setInterval</code> + <code>aboutToDisappear</code> 清理</td>
+</tr>
+</tbody>
+</table>
+<h3>3.4 网络层设计</h3>
+<ul>
+<li><code>HttpClient</code> 统一封装 <code>@ohos.net.http</code>：泛型解析、请求/响应日志、<code>Authorization</code> 自动注入；</li>
+<li>服务端 <code>code = 40100</code>（未登录/token 过期）时自动清登录态并跳转 <code>LoginPage</code>；</li>
+<li>图片地址由 <code>AppConfig.imgUrl()</code> 把相对路径（如 <code>/img/products/x.jpg</code>）补全为绝对地址；</li>
+<li>商品详情的富文本用 Web 组件渲染。</li>
+</ul>
+<hr />
+<h2>4. 服务端设计</h2>
+<h3>4.1 分层结构</h3>
+<pre><code>src/main/java/com/harmonymall/
+├── HarmonyMallApplication.java       # 启动类（@EnableScheduling）
+├── common/                           # Result 统一响应 / ResultCode / BizException / 全局异常 / 分页
+├── config/                           # MyBatis-Plus 分页、WebMvc 拦截器注册 + CORS
+├── security/                         # JwtUtil / JwtInterceptor / SecurityConfig
+├── entity/                           # 16 个实体（字段与表一一对应）
+├── mapper/                           # 16 个 Mapper（含原子扣库存、条件状态流转 SQL）
+├── dto/                              # 请求/响应对象（Create/Update/VO 系列）
+├── service/                          # User / Address / Product(含缓存) / Cart / Order(事务) —— 5 个领域服务
+├── task/OrderTask.java               # 定时任务：关单 / 退款审核 / 自动收货
+└── controller/                       # 10 个 Controller，共 40 个接口
+</code></pre>
+<p>分层职责与约束：</p>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>职责</th>
+<th>约束</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Controller</td>
+<td>路由、参数校验（<code>@Valid</code>）、取 <code>@RequestAttribute("userId")</code></td>
+<td>不写业务逻辑</td>
+</tr>
+<tr>
+<td>Service</td>
+<td>业务规则、事务边界（<code>@Transactional</code>）、状态机校验</td>
+<td>跨表操作全部在事务内</td>
+</tr>
+<tr>
+<td>Mapper</td>
+<td>单表 CRUD（MyBatis-Plus）+ 少数手写原子 SQL</td>
+<td>并发关键路径用条件更新</td>
+</tr>
+</tbody>
+</table>
+<h3>4.2 统一响应与全局异常</h3>
+<p>统一响应体：</p>
+<pre><code class="language-json">{ &quot;code&quot;: 0, &quot;message&quot;: &quot;ok&quot;, &quot;data&quot;: { } }
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>code</th>
+<th>含义</th>
+<th>处理位置</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>成功</td>
+<td>Result.ok()</td>
+</tr>
+<tr>
+<td>20000</td>
+<td>参数错误（参数校验失败）</td>
+<td>全局异常处理</td>
+</tr>
+<tr>
+<td>40100</td>
+<td>未登录 / token 失效</td>
+<td>JwtInterceptor；客户端自动跳登录</td>
+</tr>
+<tr>
+<td>40400</td>
+<td>接口不存在</td>
+<td>全局异常处理</td>
+</tr>
+<tr>
+<td>40500</td>
+<td>请求方法不支持</td>
+<td>全局异常处理</td>
+</tr>
+<tr>
+<td>50000</td>
+<td>业务/系统异常</td>
+<td><code>BizException</code> 与兜底 Exception</td>
+</tr>
+</tbody>
+</table>
+<p>业务错误统一抛 <code>BizException(message)</code>，由 <code>GlobalExceptionHandler</code> 转成 <code>code=50000</code> 的响应（如「库存不足」「仅待付款订单可取消」）。</p>
+<h3>4.3 安全设计（JWT + 鉴权）</h3>
+<table>
+<thead>
+<tr>
+<th>设计点</th>
+<th>做法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>认证</td>
+<td>登录成功签发 JWT（HS256，有效期 24h），载荷含 userId/username</td>
+</tr>
+<tr>
+<td>传递</td>
+<td><code>Authorization: Bearer &lt;token&gt;</code>；<code>JwtInterceptor</code> 解析后以 <code>@RequestAttribute("userId")</code> 注入 Controller</td>
+</tr>
+<tr>
+<td>白名单</td>
+<td>登录/注册/首页/商品/分类等查询接口；其余需登录</td>
+</tr>
+<tr>
+<td>密码存储</td>
+<td>BCrypt 哈希（<code>t_user.password</code> 存 60 位哈希）</td>
+</tr>
+<tr>
+<td>越权防护</td>
+<td>所有"我的"资源在 Service 层校验归属：订单/地址比对 <code>userId</code>，订单明细核对订单归属，优惠券核对持有人</td>
+</tr>
+<tr>
+<td>CORS</td>
+<td>WebMvc 放开开发环境跨域（管理端/调试用）</td>
+</tr>
+</tbody>
+</table>
+<h3>4.4 缓存设计（Redis）</h3>
+<table>
+<thead>
+<tr>
+<th>用途</th>
+<th>Key 设计</th>
+<th>策略</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>商品详情缓存</td>
+<td><code>product:detail:{id}</code></td>
+<td>TTL 30 分钟；<strong>空对象 <code>{}</code> 不入缓存</strong>；Redis 不可用时自动降级查库</td>
+</tr>
+<tr>
+<td>下单幂等令牌</td>
+<td><code>order:token:{userId}:{token}</code></td>
+<td><code>setIfAbsent</code> + TTL 30 分钟；重复提交直接拒绝；Redis 不可用时降级放行</td>
+</tr>
+<tr>
+<td>序列化</td>
+<td>Jackson</td>
+<td>ObjectMapper 注册 <code>JavaTimeModule</code>（实体含 <code>LocalDateTime</code>）</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>5. 数据库设计</h2>
+<h3>5.1 ER 图</h3>
+<p><img alt="数据库 ER 图" src="设计图/ER图.svg" /></p>
+<p><em>图 5-1　数据库 ER 图（核心实体与关系）</em></p>
+<p>核心关系说明：</p>
+<ul>
+<li>用户 1—n 地址 / 购物车项 / 收藏 / 足迹 / 消息 / 优惠券；</li>
+<li>分类自关联成两级树（<code>parent_id</code>），商品挂二级分类；</li>
+<li>商品 SPU 1—n SKU；购物车、收藏、足迹、评价都指向 SKU；</li>
+<li>订单 1—n 订单明细；明细冗余 <code>product_id</code> 与 <code>product_snapshot</code>（快照）；</li>
+<li>订单 0—1 用户优惠券（<code>coupon_id</code>，取消/退款时退回）。</li>
+</ul>
+<h3>5.2 表清单（16 张）</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>表名</th>
+<th>说明</th>
+<th>关键字段</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>t_user</td>
+<td>用户</td>
+<td>username(唯一), password(BCrypt), phone, nickname, avatar, status</td>
+</tr>
+<tr>
+<td>2</td>
+<td>t_address</td>
+<td>收货地址</td>
+<td>user_id, receiver, phone, 省市区, detail, is_default</td>
+</tr>
+<tr>
+<td>3</td>
+<td>t_category</td>
+<td>分类树</td>
+<td>parent_id, name, level(1/2), icon, sort</td>
+</tr>
+<tr>
+<td>4</td>
+<td>t_product</td>
+<td>商品 SPU</td>
+<td>category_id, name, subtitle, main_image, price(最低价), original_price, sales, detail, status</td>
+</tr>
+<tr>
+<td>5</td>
+<td>t_product_sku</td>
+<td>商品 SKU</td>
+<td>product_id, specs(JSON), price, stock, image</td>
+</tr>
+<tr>
+<td>6</td>
+<td>t_cart_item</td>
+<td>购物车</td>
+<td>user_id, sku_id, quantity, selected</td>
+</tr>
+<tr>
+<td>7</td>
+<td>t_order</td>
+<td>订单主表</td>
+<td>order_no(唯一), 三金额, coupon_id, address_snapshot, remark, status, 五个时间戳, cancel/refund_reason</td>
+</tr>
+<tr>
+<td>8</td>
+<td>t_order_item</td>
+<td>订单明细</td>
+<td>order_id, sku_id, product_id, price(成交价), quantity, product_snapshot</td>
+</tr>
+<tr>
+<td>9</td>
+<td>t_coupon</td>
+<td>优惠券模板</td>
+<td>name, amount, threshold, total, claimed, valid_days</td>
+</tr>
+<tr>
+<td>10</td>
+<td>t_user_coupon</td>
+<td>用户优惠券</td>
+<td>user_id, coupon_id, name, amount, threshold, status(1 未用/0 已用), expire_time, used_at</td>
+</tr>
+<tr>
+<td>11</td>
+<td>t_favorite</td>
+<td>收藏</td>
+<td>user_id, sku_id</td>
+</tr>
+<tr>
+<td>12</td>
+<td>t_footprint</td>
+<td>浏览足迹</td>
+<td>user_id, sku_id, viewed_at</td>
+</tr>
+<tr>
+<td>13</td>
+<td>t_review</td>
+<td>商品评价</td>
+<td>order_item_id, user_id, sku_id, rating(1-5), content, images</td>
+</tr>
+<tr>
+<td>14</td>
+<td>t_banner</td>
+<td>首页轮播</td>
+<td>image, link_type(product/category/none), link_value, sort</td>
+</tr>
+<tr>
+<td>15</td>
+<td>t_message</td>
+<td>站内消息</td>
+<td>user_id, title, content, type(system/order/coupon), is_read</td>
+</tr>
+<tr>
+<td>16</td>
+<td>t_search_keyword</td>
+<td>搜索热词统计</td>
+<td>keyword(唯一), count</td>
+</tr>
+</tbody>
+</table>
+<h3>5.3 核心表结构详细设计</h3>
+<p><strong>t_order（订单主表）</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>约束</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>BIGINT</td>
+<td>PK, 自增</td>
+<td>主键</td>
+</tr>
+<tr>
+<td>order_no</td>
+<td>VARCHAR(64)</td>
+<td>UNIQUE</td>
+<td>订单编号（HM + 时间戳 + 随机数）</td>
+</tr>
+<tr>
+<td>user_id</td>
+<td>BIGINT</td>
+<td>NOT NULL, 索引</td>
+<td>下单用户</td>
+</tr>
+<tr>
+<td>total_amount</td>
+<td>INT</td>
+<td>NOT NULL</td>
+<td>商品总额（分）</td>
+</tr>
+<tr>
+<td>discount_amount</td>
+<td>INT</td>
+<td>默认 0</td>
+<td>优惠金额（分）</td>
+</tr>
+<tr>
+<td>coupon_id</td>
+<td>BIGINT</td>
+<td>可空</td>
+<td>使用的用户优惠券 ID（t_user_coupon.id）</td>
+</tr>
+<tr>
+<td>pay_amount</td>
+<td>INT</td>
+<td>NOT NULL</td>
+<td>实付 = max(总额 − 优惠, 0)</td>
+</tr>
+<tr>
+<td>address_snapshot</td>
+<td>TEXT</td>
+<td>可空</td>
+<td>地址快照 JSON（收货人/电话/省市区/详址）</td>
+</tr>
+<tr>
+<td>remark</td>
+<td>VARCHAR(255)</td>
+<td>可空</td>
+<td>买家备注</td>
+</tr>
+<tr>
+<td>cancel_reason</td>
+<td>VARCHAR(200)</td>
+<td>可空</td>
+<td>取消原因（用户取消 / 超时自动取消）</td>
+</tr>
+<tr>
+<td>refund_reason</td>
+<td>VARCHAR(200)</td>
+<td>可空</td>
+<td>退款原因</td>
+</tr>
+<tr>
+<td>status</td>
+<td>TINYINT</td>
+<td>默认 0</td>
+<td>0 待付款 1 待发货 2 待收货 3 已完成 4 已取消 5 退款中 6 已退款</td>
+</tr>
+<tr>
+<td>pay_time / ship_time / finish_time / refund_time</td>
+<td>DATETIME</td>
+<td>可空</td>
+<td>四个关键时间戳</td>
+</tr>
+<tr>
+<td>deleted</td>
+<td>TINYINT</td>
+<td>默认 0</td>
+<td>逻辑删除</td>
+</tr>
+<tr>
+<td>created_at / updated_at</td>
+<td>DATETIME</td>
+<td>自动</td>
+<td>创建/更新时间</td>
+</tr>
+</tbody>
+</table>
+<p><strong>t_product_sku（商品 SKU）</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>约束</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>BIGINT</td>
+<td>PK</td>
+<td>主键</td>
+</tr>
+<tr>
+<td>product_id</td>
+<td>BIGINT</td>
+<td>NOT NULL</td>
+<td>所属 SPU</td>
+</tr>
+<tr>
+<td>specs</td>
+<td>VARCHAR(255)</td>
+<td>可空</td>
+<td>规格 JSON，如 <code>{"颜色":"白","尺码":"M"}</code></td>
+</tr>
+<tr>
+<td>price</td>
+<td>INT</td>
+<td>NOT NULL</td>
+<td>售价（分）</td>
+</tr>
+<tr>
+<td>stock</td>
+<td>INT</td>
+<td>默认 0</td>
+<td>库存（并发扣减的争用点，见 8.1）</td>
+</tr>
+<tr>
+<td>image</td>
+<td>VARCHAR(255)</td>
+<td>可空</td>
+<td>SKU 图（空则用 SPU 主图）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>t_order_item（订单明细）</strong></p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>类型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>BIGINT PK</td>
+<td>主键</td>
+</tr>
+<tr>
+<td>order_id</td>
+<td>BIGINT</td>
+<td>所属订单</td>
+</tr>
+<tr>
+<td>sku_id / product_id</td>
+<td>BIGINT</td>
+<td>商品引用（供回滚库存/销量/跳转）</td>
+</tr>
+<tr>
+<td>price</td>
+<td>INT</td>
+<td>成交价快照（分）</td>
+</tr>
+<tr>
+<td>quantity</td>
+<td>INT</td>
+<td>购买数量</td>
+</tr>
+<tr>
+<td>product_snapshot</td>
+<td>TEXT</td>
+<td>商品快照 JSON（名称/图片/specs/价格）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>其余 13 张表</strong>结构与 <code>db/schema.sql</code> 一一对应（含注释），此处不再逐一展开；字段口径见 5.2 表清单。</p>
+<h3>5.4 设计要点</h3>
+<table>
+<thead>
+<tr>
+<th>设计点</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>逻辑删除</td>
+<td>全表统一 <code>deleted TINYINT DEFAULT 0</code>，MyBatis-Plus 全局配置自动过滤；<strong>insert 时显式写 0</strong>（Integer 无初值会落 NULL 导致漏查）</td>
+</tr>
+<tr>
+<td>快照策略</td>
+<td>订单保存商品/地址快照，商品后续改价改图不影响历史订单；端上用 <code>FormatUtil.specText()</code> 把 specs JSON 转可读文本</td>
+</tr>
+<tr>
+<td>金额口径</td>
+<td>全链路用"分"（INT），杜绝浮点误差；仅展示层转元</td>
+</tr>
+<tr>
+<td>冗余字段</td>
+<td>订单明细冗余 product_id（回滚销量/评价定位用）；用户券冗余券名称/面额（模板改动不影响已领券）</td>
+</tr>
+<tr>
+<td>唯一约束</td>
+<td>username、order_no、search_keyword.keyword 唯一；购物车按 (user_id, sku_id) 应用层去重合并</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>6. 接口设计</h2>
+<h3>6.1 接口规范</h3>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>约定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>风格</td>
+<td>RESTful；<code>/api</code> 前缀由各 Controller 类级注解声明（非 context-path，保证 <code>/img/**</code> 静态资源在根路径）</td>
+</tr>
+<tr>
+<td>请求</td>
+<td>GET 用 query 参数；POST/PUT 用 JSON body</td>
+</tr>
+<tr>
+<td>响应</td>
+<td>统一 <code>{code, message, data}</code>；分页数据为 <code>{list, total, page, size}</code></td>
+</tr>
+<tr>
+<td>鉴权</td>
+<td><code>Authorization: Bearer &lt;token&gt;</code>；需登录接口由拦截器强制</td>
+</tr>
+<tr>
+<td>错误码</td>
+<td>0 成功 / 20000 参数 / 40100 未登录 / 40400 不存在 / 40500 方法不支持 / 50000 业务或系统异常</td>
+</tr>
+</tbody>
+</table>
+<h3>6.2 接口清单（10 个 Controller / 40 个接口）</h3>
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>方法与路径</th>
+<th>说明</th>
+<th>鉴权</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>认证</td>
+<td>POST /api/auth/login</td>
+<td>登录，返回用户 + token</td>
+<td>否</td>
+</tr>
+<tr>
+<td>认证</td>
+<td>POST /api/auth/register</td>
+<td>注册（账号/手机号/密码校验）</td>
+<td>否</td>
+</tr>
+<tr>
+<td>认证</td>
+<td>POST /api/auth/sms/code</td>
+<td>发送验证码（演示）</td>
+<td>否</td>
+</tr>
+<tr>
+<td>首页</td>
+<td>GET /api/home</td>
+<td>聚合：轮播 + 分类树 + 推荐商品</td>
+<td>否</td>
+</tr>
+<tr>
+<td>分类</td>
+<td>GET /api/categories</td>
+<td>一二级分类树</td>
+<td>否</td>
+</tr>
+<tr>
+<td>商品</td>
+<td>GET /api/products</td>
+<td>列表/搜索/分类筛选/排序/分页</td>
+<td>否</td>
+</tr>
+<tr>
+<td>商品</td>
+<td>GET /api/products/hot-keywords</td>
+<td>搜索热词 Top N（真实统计）</td>
+<td>否</td>
+</tr>
+<tr>
+<td>商品</td>
+<td>GET /api/products/{id}</td>
+<td>详情 + SKU 列表</td>
+<td>否</td>
+</tr>
+<tr>
+<td>商品</td>
+<td>GET /api/products/{id}/reviews</td>
+<td>评价列表（昵称脱敏）</td>
+<td>否</td>
+</tr>
+<tr>
+<td>评价</td>
+<td>POST /api/reviews</td>
+<td>发表评价（核验订单明细归属/已完成/不重复）</td>
+<td>是</td>
+</tr>
+<tr>
+<td>购物车</td>
+<td>GET /api/cart</td>
+<td>购物车列表（含库存标记）</td>
+<td>是</td>
+</tr>
+<tr>
+<td>购物车</td>
+<td>POST /api/cart</td>
+<td>加入购物车（同 SKU 累加，校验库存）</td>
+<td>是</td>
+</tr>
+<tr>
+<td>购物车</td>
+<td>PUT /api/cart/{id}</td>
+<td>改数量/选中状态</td>
+<td>是</td>
+</tr>
+<tr>
+<td>购物车</td>
+<td>DELETE /api/cart/{id}</td>
+<td>删除</td>
+<td>是</td>
+</tr>
+<tr>
+<td>订单</td>
+<td>POST /api/orders</td>
+<td>创建订单（事务：幂等+扣库存+券抵扣）</td>
+<td>是</td>
+</tr>
+<tr>
+<td>订单</td>
+<td>GET /api/orders</td>
+<td>订单列表（status 筛选 + 分页）</td>
+<td>是</td>
+</tr>
+<tr>
+<td>订单</td>
+<td>GET /api/orders/{id}</td>
+<td>订单详情（含明细/评价状态/原因）</td>
+<td>是</td>
+</tr>
+<tr>
+<td>订单</td>
+<td>POST /api/orders/{id}/pay</td>
+<td>模拟支付</td>
+<td>是</td>
+</tr>
+<tr>
+<td>订单</td>
+<td>POST /api/orders/{id}/cancel</td>
+<td>取消（可带 reason）</td>
+<td>是</td>
+</tr>
+<tr>
+<td>订单</td>
+<td>POST /api/orders/{id}/ship</td>
+<td>模拟商家发货（演示）</td>
+<td>是</td>
+</tr>
+<tr>
+<td>订单</td>
+<td>POST /api/orders/{id}/confirm</td>
+<td>确认收货</td>
+<td>是</td>
+</tr>
+<tr>
+<td>订单</td>
+<td>POST /api/orders/{id}/refund</td>
+<td>申请退款（可带 reason，进入退款中）</td>
+<td>是</td>
+</tr>
+<tr>
+<td>优惠券</td>
+<td>GET /api/coupons</td>
+<td>领券中心列表</td>
+<td>是</td>
+</tr>
+<tr>
+<td>优惠券</td>
+<td>POST /api/coupons/{id}/claim</td>
+<td>领取（每人限一张，库存校验）</td>
+<td>是</td>
+</tr>
+<tr>
+<td>优惠券</td>
+<td>GET /api/coupons/mine</td>
+<td>我的券（可按状态筛）</td>
+<td>是</td>
+</tr>
+<tr>
+<td>优惠券</td>
+<td>GET /api/coupons/usable?amount=</td>
+<td>指定金额下可用券</td>
+<td>是</td>
+</tr>
+<tr>
+<td>地址</td>
+<td>GET /api/address</td>
+<td>地址列表</td>
+<td>是</td>
+</tr>
+<tr>
+<td>地址</td>
+<td>POST /api/address</td>
+<td>新增地址</td>
+<td>是</td>
+</tr>
+<tr>
+<td>地址</td>
+<td>PUT /api/address/{id}</td>
+<td>编辑地址</td>
+<td>是</td>
+</tr>
+<tr>
+<td>地址</td>
+<td>DELETE /api/address/{id}</td>
+<td>删除地址</td>
+<td>是</td>
+</tr>
+<tr>
+<td>地址</td>
+<td>PUT /api/address/{id}/default</td>
+<td>设为默认</td>
+<td>是</td>
+</tr>
+<tr>
+<td>用户</td>
+<td>GET /api/user/profile</td>
+<td>个人信息</td>
+<td>是</td>
+</tr>
+<tr>
+<td>用户</td>
+<td>PUT /api/user/profile</td>
+<td>修改昵称/手机号/头像</td>
+<td>是</td>
+</tr>
+<tr>
+<td>用户</td>
+<td>GET /api/user/favorites</td>
+<td>收藏列表</td>
+<td>是</td>
+</tr>
+<tr>
+<td>用户</td>
+<td>POST /api/user/favorites</td>
+<td>添加收藏</td>
+<td>是</td>
+</tr>
+<tr>
+<td>用户</td>
+<td>DELETE /api/user/favorites/{skuId}</td>
+<td>取消收藏</td>
+<td>是</td>
+</tr>
+<tr>
+<td>用户</td>
+<td>GET /api/user/footprints</td>
+<td>浏览足迹（倒序）</td>
+<td>是</td>
+</tr>
+<tr>
+<td>用户</td>
+<td>POST /api/user/footprints</td>
+<td>记录足迹（详情页上报）</td>
+<td>是</td>
+</tr>
+<tr>
+<td>用户</td>
+<td>GET /api/user/messages</td>
+<td>消息列表</td>
+<td>是</td>
+</tr>
+<tr>
+<td>用户</td>
+<td>PUT /api/user/messages/{id}/read</td>
+<td>标记已读</td>
+<td>是</td>
+</tr>
+</tbody>
+</table>
+<h3>6.3 典型接口详设</h3>
+<p><strong>（1）POST /api/auth/login</strong></p>
+<p>请求：</p>
+<pre><code class="language-json">{ &quot;username&quot;: &quot;zhangsan&quot;, &quot;password&quot;: &quot;123456&quot; }
+</code></pre>
+<p>响应：</p>
+<pre><code class="language-json">{
+  &quot;code&quot;: 0,
+  &quot;message&quot;: &quot;success&quot;,
+  &quot;data&quot;: {
+    &quot;user&quot;: { &quot;id&quot;: 1, &quot;username&quot;: &quot;zhangsan&quot;, &quot;nickname&quot;: &quot;小张&quot;, &quot;avatar&quot;: &quot;/img/avatar.png&quot; },
+    &quot;token&quot;: &quot;eyJhbGciOiJIUzI1NiJ9...&quot;
+  }
+}
+</code></pre>
+<p><strong>（2）POST /api/orders（创建订单）</strong></p>
+<p>请求：</p>
+<pre><code class="language-json">{
+  &quot;cartIds&quot;: [12, 13],          // 结算的购物车项
+  &quot;addressId&quot;: 1,               // 收货地址
+  &quot;couponId&quot;: 3,                // 用券（不用传 0）
+  &quot;clientToken&quot;: &quot;1739583185123_482913&quot;,  // 幂等令牌（端上生成）
+  &quot;remark&quot;: &quot;尽快发货&quot;
+}
+</code></pre>
+<p>响应：<code>data</code> 为订单对象（含 id / orderNo / 三金额 / status=0）。</p>
+<p>失败场景：库存不足（某商品被并发抢完）、优惠券不可用、购物车项已失效、订单重复提交（幂等拦截）。</p>
+<p><strong>（3）GET /api/orders/{id}（订单详情）</strong></p>
+<p>响应 <code>data</code> 关键字段：</p>
+<pre><code class="language-json">{
+  &quot;id&quot;: 9, &quot;orderNo&quot;: &quot;HM202610160917522294&quot;, &quot;status&quot;: 6,
+  &quot;totalAmount&quot;: 62900, &quot;discountAmount&quot;: 0, &quot;payAmount&quot;: 62900,
+  &quot;payTime&quot;: &quot;...&quot;, &quot;shipTime&quot;: &quot;...&quot;, &quot;refundTime&quot;: &quot;...&quot;,
+  &quot;refundReason&quot;: &quot;商品缺货&quot;, &quot;cancelReason&quot;: null,
+  &quot;items&quot;: [ { &quot;id&quot;: 9, &quot;skuId&quot;: 1300, &quot;price&quot;: 62900, &quot;quantity&quot;: 1,
+               &quot;productSnapshot&quot;: &quot;{...}&quot;, &quot;reviewed&quot;: false } ]
+}
+</code></pre>
+<hr />
+<h2>7. 核心业务流程设计</h2>
+<h3>7.1 登录认证流程</h3>
+<ol>
+<li>客户端提交账号密码 → <code>AuthController.login</code> 校验 BCrypt 密码；</li>
+<li>通过后签发 JWT（userId/username，24h），随用户信息返回；</li>
+<li>客户端 <code>AppStorage</code>（<code>setOrCreate</code>）保存 token 与用户，后续请求由 HttpClient 自动携带；</li>
+<li>服务端 <code>JwtInterceptor</code> 校验解析，<code>userId</code> 注入 Controller；</li>
+<li>token 失效 → 响应 40100 → 客户端清登录态并跳转登录页。</li>
+</ol>
+<h3>7.2 购物主链路</h3>
+<p>浏览（首页/分类/搜索）→ 商品详情选 SKU → 加入购物车 → 购物车勾选结算 → 确认订单（选地址、选优惠券）→ 创建订单（事务）→ 模拟支付 → 待发货 →（模拟发货）→ 待收货 → 确认收货 → 已完成 → 评价。</p>
+<h3>7.3 订单状态机</h3>
+<p><img alt="订单状态机" src="设计图/订单状态机.svg" /></p>
+<p><em>图 7-1　订单状态机（0 待付款 → 3 已完成；4 已取消；5 退款中 → 6 已退款）</em></p>
+<table>
+<thead>
+<tr>
+<th>当前状态</th>
+<th>触发动作</th>
+<th>目标状态</th>
+<th>触发方</th>
+<th>守卫条件</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0 待付款</td>
+<td>支付</td>
+<td>1 待发货</td>
+<td>用户</td>
+<td>仅本人订单</td>
+</tr>
+<tr>
+<td>0 待付款</td>
+<td>取消</td>
+<td>4 已取消</td>
+<td>用户</td>
+<td>记录取消原因；回滚库存/销量/券</td>
+</tr>
+<tr>
+<td>0 待付款</td>
+<td>超时（30 分钟）</td>
+<td>4 已取消</td>
+<td>OrderTask</td>
+<td>原因「超时未支付，系统自动取消」</td>
+</tr>
+<tr>
+<td>1 待发货</td>
+<td>发货</td>
+<td>2 待收货</td>
+<td>模拟商家</td>
+<td>记录 ship_time</td>
+</tr>
+<tr>
+<td>1/2</td>
+<td>申请退款</td>
+<td>5 退款中</td>
+<td>用户</td>
+<td>记录退款原因</td>
+</tr>
+<tr>
+<td>5 退款中</td>
+<td>审核通过</td>
+<td>6 已退款</td>
+<td>OrderTask</td>
+<td>回滚库存/销量/券；记录 refund_time</td>
+</tr>
+<tr>
+<td>2 待收货</td>
+<td>确认收货</td>
+<td>3 已完成</td>
+<td>用户</td>
+<td>记录 finish_time</td>
+</tr>
+<tr>
+<td>2 待收货</td>
+<td>发货超 7 天</td>
+<td>3 已完成</td>
+<td>OrderTask</td>
+<td>自动确认</td>
+</tr>
+<tr>
+<td>3 已完成</td>
+<td>评价</td>
+<td>3 已完成</td>
+<td>用户</td>
+<td>按明细评价，不重复</td>
+</tr>
+</tbody>
+</table>
+<p>所有流转都由<strong>条件更新</strong>实现（<code>WHERE status = 旧状态</code>），并发下只有一方成功——重复点击返回「订单状态已变化，请刷新后重试」。</p>
+<h3>7.4 下单流程（幂等 + 防超卖 + 优惠券抵扣）</h3>
+<p><img alt="下单流程" src="设计图/下单流程.svg" /></p>
+<p><em>图 7-2　下单流程（事务内步骤与失败分支）</em></p>
+<p>事务内步骤（任一失败整单回滚）：</p>
+<ol>
+<li><strong>幂等检查</strong>：<code>clientToken</code> 写入 Redis（<code>setIfAbsent</code>），重复提交直接拒绝；</li>
+<li>查询并校验购物车项（数量与请求一致，否则「部分商品已失效」）、地址归属；</li>
+<li>逐项<strong>原子扣库存</strong>：<code>UPDATE ... SET stock = stock - ? WHERE id=? AND stock &gt;= ?</code>，0 行 → 库存不足；</li>
+<li>校验优惠券（归属/未用/未过期/达门槛）后<strong>条件锁定</strong>（<code>status 1→0</code>），计算抵扣；</li>
+<li>生成订单（金额 / 快照 / 状态 0）与明细，累加销量（原子自增）；</li>
+<li>删除已结算购物车项。</li>
+</ol>
+<h3>7.5 退款流程</h3>
+<p><img alt="退款流程" src="设计图/退款流程图.svg" /></p>
+<p><em>图 7-3　退款流程（用户侧 + OrderTask 定时任务侧）</em></p>
+<ol>
+<li>用户在订单详情/列表选择退款原因 → <code>POST /orders/{id}/refund</code>；</li>
+<li>状态条件更新 <code>1/2 → 5 退款中</code>（记录 refund_reason）；</li>
+<li><code>OrderTask</code>（20 秒周期）扫描「退款中」订单，模拟商家审核通过：条件更新 <code>5 → 6 已退款</code>（记录 refund_time），并回滚库存、销量、优惠券；</li>
+<li>端上重新进入详情即可看到「已退款 + 退款原因 + 退款时间」。</li>
+</ol>
+<h3>7.6 库存与失效处理</h3>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>加购/改数量</td>
+<td>服务端校验当前库存上限，超限拒绝；购物车页超库存项置灰</td>
+</tr>
+<tr>
+<td>商品售罄</td>
+<td>详情页禁用加购/购买按钮；购物车结算自动跳过售罄项</td>
+</tr>
+<tr>
+<td>下单并发</td>
+<td>原子扣库存（7.4 第 3 步）从根上防超卖</td>
+</tr>
+<tr>
+<td>取消/退款</td>
+<td>原子回补库存与销量，优惠券按有效性退回</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>8. 关键技术方案（设计亮点）</h2>
+<h3>8.1 并发防超卖——SQL 条件原子更新</h3>
+<p><strong>问题</strong>：经典"先查库存再扣减"是读-改-写，两个并发请求可能读到同一库存值，导致超卖。</p>
+<p><strong>方案</strong>：把"校验 + 扣减"合并为一条条件 UPDATE：</p>
+<pre><code class="language-sql">UPDATE t_product_sku SET stock = stock - #{qty}
+WHERE id = #{id} AND stock &gt;= #{qty} AND deleted = 0
+</code></pre>
+<p>受影响行数为 1 才继续下单，为 0 抛「库存不足」触发事务回滚。数据库行级锁天然保证互斥。</p>
+<p><strong>实测验证</strong>：将某 SKU 库存临时置 1，两个账号并发下单——一人成功、一人被拒「库存不足」，库存最终为 0（未超卖为负）。</p>
+<h3>8.2 接口幂等——clientToken + Redis</h3>
+<p>端上生成一次性 <code>clientToken</code>，服务端 <code>setIfAbsent("order:token:{userId}:{token}", 30min)</code>，重复请求（双击/重试）命中已有令牌直接拒绝「订单已提交，请勿重复操作」。Redis 不可用时降级放行，由"购物车项已删除"兜底。</p>
+<h3>8.3 状态机守卫——条件更新 + 影响行数</h3>
+<p>所有状态流转 SQL 形如：</p>
+<pre><code class="language-sql">UPDATE t_order SET status = 1, pay_time = ?
+WHERE id = ? AND user_id = ? AND status = 0 AND deleted = 0
+</code></pre>
+<p>影响行数 0 → 说明状态已被其它请求改变（重复点击/定时任务撞车），抛业务异常。该模式同样应用于优惠券锁定（防一券两单），从机制上消灭"重复回滚库存""一笔订单退两次款"。</p>
+<h3>8.4 数据快照——订单商品 / 地址</h3>
+<p>下单时把商品（名称/图片/specs/价格）与地址（收货人/电话/省市区/详址）序列化为 JSON 存入订单。好处：商品改价、地址修改、SKU 下架都不影响历史订单展示；同时保留 <code>sku_id/product_id</code> 供后续业务（回滚、评价）定位使用。</p>
+<h3>8.5 定时任务——OrderTask</h3>
+<table>
+<thead>
+<tr>
+<th>任务</th>
+<th>周期</th>
+<th>逻辑</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>超时关单</td>
+<td>20s 扫描</td>
+<td>待付款且创建超 30 分钟（<code>harmonymall.order.timeout-minutes</code>）→ 条件取消 + 回滚</td>
+</tr>
+<tr>
+<td>退款审核</td>
+<td>20s 扫描</td>
+<td>退款中 → 已退款 + 回滚（模拟商家秒批）</td>
+</tr>
+<tr>
+<td>自动收货</td>
+<td>1h 扫描</td>
+<td>待收货且发货超 7 天（<code>harmonymall.order.auto-confirm-days</code>）→ 批量条件完成</td>
+</tr>
+</tbody>
+</table>
+<p>任务逐单走"条件更新 → 成功后回滚"模式，多实例并发扫描也只会处理一次。</p>
+<h3>8.6 评价展示脱敏</h3>
+<p>评价列表返回 <code>ReviewVO</code>：有昵称显示昵称（如"小张"），否则用户名首字 + <code>***</code>；评价入口按订单明细维度校验（归属 + 订单已完成 + 不重复），避免刷评。</p>
+<hr />
+<h2>9. 设计验证（实测记录）</h2>
+<table>
+<thead>
+<tr>
+<th>验证项</th>
+<th>方法</th>
+<th>结果</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>防超卖</td>
+<td>库存置 1，双账号并发下单</td>
+<td>一成功一被拒，库存不变负 ✅</td>
+</tr>
+<tr>
+<td>状态守卫</td>
+<td>重复取消 / 重复退款</td>
+<td>均被拦截（"仅待付款订单可取消"等） ✅</td>
+</tr>
+<tr>
+<td>取消带原因</td>
+<td>端上选择「信息填写错误」提交</td>
+<td>订单已取消 + 原因回显 ✅</td>
+</tr>
+<tr>
+<td>退款两步</td>
+<td>端上选「商品缺货」→ 等待定时任务</td>
+<td>退款中 → 已退款 + 原因/时间回显 ✅</td>
+</tr>
+<tr>
+<td>待付款倒计时</td>
+<td>端上观察</td>
+<td>28:09 → 27:41 每秒递减 ✅</td>
+</tr>
+<tr>
+<td>自动确认收货</td>
+<td>发货时间回拨 8 天 + 重启后端</td>
+<td>任务首跑自动转「已完成」 ✅</td>
+</tr>
+<tr>
+<td>幂等</td>
+<td>同 token 重复提交订单</td>
+<td>第二次被拒「订单已提交，请勿重复操作」 ✅</td>
+</tr>
+<tr>
+<td>库存回滚</td>
+<td>取消/退款前后对比 SKU 库存</td>
+<td>60→59→60 精确回滚 ✅</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>验收截图归档于 <code>鸿蒙商城/截图/</code>（30+ 张，覆盖全部页面与关键流程）。</p>
+</blockquote>
+</main>
+</body>
+</html>

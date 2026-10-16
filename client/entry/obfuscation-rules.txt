@@ -1,0 +1,6 @@
+# 混淆规则文件（release 构建时生效，当前 enable=false 未开启混淆）
+# 开启后可在此添加需要保留的类名/属性名，例如：
+# -keep-property-name
+# id
+# name
+# price

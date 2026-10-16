@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1150" height="620" viewBox="0 0 1150 620" font-family="Microsoft YaHei, PingFang SC, Segoe UI, sans-serif">
+<defs><marker id="arr" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#475569"/></marker><marker id="arrb" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#2563eb"/></marker><marker id="arro" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#f59e0b"/></marker><marker id="arrg" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#16a34a"/></marker></defs>
+<rect width="1150" height="620" fill="#ffffff"/>
+<text x="40" y="30" text-anchor="start" font-size="13" fill="#1f2328" font-weight="bold">核心实体关系（16 张表中 12 张核心表；其余 4 张独立表见注释）</text>
+<rect x="40" y="60" width="170" height="95" rx="9" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="125.0" y="80" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1e3a8a">t_user 用户</text>
+<text x="125.0" y="98" text-anchor="middle" font-size="10" fill="#475569">username 唯一</text>
+<text x="125.0" y="112" text-anchor="middle" font-size="10" fill="#475569">password(BCrypt)</text>
+<text x="125.0" y="126" text-anchor="middle" font-size="10" fill="#475569">nickname / avatar</text>
+<rect x="280" y="60" width="170" height="95" rx="9" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="365.0" y="80" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1e3a8a">t_order 订单</text>
+<text x="365.0" y="98" text-anchor="middle" font-size="10" fill="#475569">order_no / user_id</text>
+<text x="365.0" y="112" text-anchor="middle" font-size="10" fill="#475569">status / 三金额</text>
+<text x="365.0" y="126" text-anchor="middle" font-size="10" fill="#475569">cancel·refund_reason</text>
+<rect x="520" y="60" width="170" height="95" rx="9" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="605.0" y="80" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1e3a8a">t_order_item 明细</text>
+<text x="605.0" y="98" text-anchor="middle" font-size="10" fill="#475569">order_id / sku_id</text>
+<text x="605.0" y="112" text-anchor="middle" font-size="10" fill="#475569">price / quantity</text>
+<text x="605.0" y="126" text-anchor="middle" font-size="10" fill="#475569">product_snapshot</text>
+<rect x="760" y="60" width="170" height="95" rx="9" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="845.0" y="80" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1e3a8a">t_product_sku</text>
+<text x="845.0" y="98" text-anchor="middle" font-size="10" fill="#475569">product_id</text>
+<text x="845.0" y="112" text-anchor="middle" font-size="10" fill="#475569">specs / price / stock</text>
+<text x="845.0" y="126" text-anchor="middle" font-size="10" fill="#475569">image</text>
+<rect x="1000" y="60" width="170" height="95" rx="9" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="1085.0" y="80" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1e3a8a">t_product SPU</text>
+<text x="1085.0" y="98" text-anchor="middle" font-size="10" fill="#475569">category_id / name</text>
+<text x="1085.0" y="112" text-anchor="middle" font-size="10" fill="#475569">price / sales / status</text>
+<text x="1085.0" y="126" text-anchor="middle" font-size="10" fill="#475569">detail 富文本</text>
+<rect x="40" y="300" width="170" height="95" rx="9" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="125.0" y="320" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1e3a8a">t_address 地址</text>
+<text x="125.0" y="338" text-anchor="middle" font-size="10" fill="#475569">user_id / receiver</text>
+<text x="125.0" y="352" text-anchor="middle" font-size="10" fill="#475569">省市区 + detail</text>
+<text x="125.0" y="366" text-anchor="middle" font-size="10" fill="#475569">is_default</text>
+<rect x="280" y="300" width="170" height="95" rx="9" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="365.0" y="320" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1e3a8a">t_cart_item 购物车</text>
+<text x="365.0" y="338" text-anchor="middle" font-size="10" fill="#475569">user_id / sku_id</text>
+<text x="365.0" y="352" text-anchor="middle" font-size="10" fill="#475569">quantity / selected</text>
+<text x="365.0" y="366" text-anchor="middle" font-size="10" fill="#475569">(user,sku) 去重合并</text>
+<rect x="520" y="300" width="170" height="95" rx="9" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="605.0" y="320" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1e3a8a">t_favorite 收藏</text>
+<text x="605.0" y="338" text-anchor="middle" font-size="10" fill="#475569">user_id / sku_id</text>
+<text x="605.0" y="352" text-anchor="middle" font-size="10" fill="#475569">created_at</text>
+<rect x="760" y="300" width="170" height="95" rx="9" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="845.0" y="320" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1e3a8a">t_review 评价</text>
+<text x="845.0" y="338" text-anchor="middle" font-size="10" fill="#475569">order_item_id</text>
+<text x="845.0" y="352" text-anchor="middle" font-size="10" fill="#475569">user_id / rating</text>
+<text x="845.0" y="366" text-anchor="middle" font-size="10" fill="#475569">content / images</text>
+<rect x="1000" y="300" width="170" height="95" rx="9" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="1085.0" y="320" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1e3a8a">t_category 分类</text>
+<text x="1085.0" y="338" text-anchor="middle" font-size="10" fill="#475569">parent_id（树）</text>
+<text x="1085.0" y="352" text-anchor="middle" font-size="10" fill="#475569">name / level(1,2)</text>
+<text x="1085.0" y="366" text-anchor="middle" font-size="10" fill="#475569">icon / sort</text>
+<rect x="40" y="480" width="170" height="95" rx="9" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="125.0" y="500" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1e3a8a">t_user_coupon</text>
+<text x="125.0" y="518" text-anchor="middle" font-size="10" fill="#475569">user_id / coupon_id</text>
+<text x="125.0" y="532" text-anchor="middle" font-size="10" fill="#475569">status(1 未用 0 已用)</text>
+<text x="125.0" y="546" text-anchor="middle" font-size="10" fill="#475569">expire_time / used_at</text>
+<rect x="280" y="480" width="170" height="95" rx="9" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="365.0" y="500" text-anchor="middle" font-size="12.5" font-weight="bold" fill="#1e3a8a">t_coupon 券模板</text>
+<text x="365.0" y="518" text-anchor="middle" font-size="10" fill="#475569">amount / threshold</text>
+<text x="365.0" y="532" text-anchor="middle" font-size="10" fill="#475569">total / claimed</text>
+<text x="365.0" y="546" text-anchor="middle" font-size="10" fill="#475569">valid_days</text>
+<path d="M210,107 L276,107" fill="none" stroke="#2563eb" stroke-width="1.6" marker-end="url(#arrb)"/>
+<text x="243" y="99" text-anchor="middle" font-size="11" fill="#2563eb">1:n</text>
+<path d="M450,107 L516,107" fill="none" stroke="#2563eb" stroke-width="1.6" marker-end="url(#arrb)"/>
+<text x="483" y="99" text-anchor="middle" font-size="11" fill="#2563eb">1:n</text>
+<path d="M690,107 L756,107" fill="none" stroke="#2563eb" stroke-width="1.6" marker-end="url(#arrb)"/>
+<text x="723" y="99" text-anchor="middle" font-size="11" fill="#2563eb">n:1</text>
+<path d="M930,107 L996,107" fill="none" stroke="#2563eb" stroke-width="1.6" marker-end="url(#arrb)"/>
+<text x="963" y="99" text-anchor="middle" font-size="11" fill="#2563eb">n:1</text>
+<path d="M1085,155 L1085,296" fill="none" stroke="#2563eb" stroke-width="1.6" marker-end="url(#arrb)"/>
+<text x="1093" y="230" text-anchor="start" font-size="11" fill="#2563eb">n:1</text>
+<path d="M85,155 L85,296" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arr)"/>
+<text x="78" y="228" text-anchor="end" font-size="11" fill="#475569">1:n</text>
+<path d="M165,155 L165,240 L365,240 L365,296" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arr)"/>
+<text x="262" y="232" text-anchor="middle" font-size="11" fill="#475569">1:n</text>
+<path d="M40,130 L22,130 L22,430 L605,430 L605,395" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arr)"/>
+<text x="315" y="422" text-anchor="middle" font-size="11" fill="#475569">1:n</text>
+<path d="M40,145 L30,145 L30,455 L125,455 L125,476" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arr)"/>
+<text x="78" y="447" text-anchor="middle" font-size="11" fill="#475569">1:n</text>
+<path d="M210,527 L276,527" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#arr)"/>
+<text x="243" y="519" text-anchor="middle" font-size="11" fill="#475569">n:1</text>
+<path d="M415,300 L800,155" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arr)" stroke-dasharray="5,4"/>
+<text x="760" y="172" text-anchor="start" font-size="11" fill="#475569">n:1</text>
+<path d="M760,300 L605,155" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arr)" stroke-dasharray="5,4"/>
+<text x="730" y="252" text-anchor="start" font-size="11" fill="#475569">n:1</text>
+<rect x="520" y="480" width="590" height="95" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.4"/>
+<text x="545" y="512" text-anchor="start" font-size="12" fill="#1f2328" font-weight="bold">独立表（无外键关联）</text>
+<text x="545" y="534" text-anchor="start" font-size="10" fill="#475569">t_footprint 浏览足迹 · t_message 站内消息 · t_banner 首页轮播 · t_search_keyword 搜索热词</text>
+<text x="545" y="552" text-anchor="start" font-size="10" fill="#475569">金额单位：分（INT）｜逻辑删除：deleted 0/1（全表）</text>
+</svg>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HarmonyMall API · 鸿蒙商城后端服务</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: #F5F6F8; color: #182431; line-height: 1.6; padding: 32px 16px;
+    }
+    .wrap { max-width: 860px; margin: 0 auto; }
+    .card {
+      background: #FFFFFF; border-radius: 12px; padding: 24px 28px;
+      margin-bottom: 16px; box-shadow: 0 1px 3px rgba(24,36,49,.08);
+    }
+    h1 { font-size: 22px; display: flex; align-items: center; gap: 10px; }
+    h1 .logo {
+      width: 34px; height: 34px; border-radius: 9px; background: #0A59F7;
+      color: #fff; display: inline-flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 600;
+    }
+    .sub { color: #8A9199; font-size: 13px; margin-top: 6px; }
+    .ok {
+      display: inline-block; background: #E8F5EE; color: #0F8A4D;
+      border-radius: 999px; padding: 2px 12px; font-size: 12px; margin-top: 10px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+    th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #EEF0F3; }
+    th { color: #8A9199; font-weight: 500; }
+    td.path { font-family: Consolas, monospace; color: #0A59F7; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .kv { font-size: 13px; }
+    .kv b { color: #8A9199; font-weight: 500; display: block; font-size: 12px; }
+    a { color: #0A59F7; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .foot { text-align: center; color: #8A9199; font-size: 12px; margin-top: 20px; }
+    code { background: #F5F6F8; border-radius: 4px; padding: 1px 6px; font-family: Consolas, monospace; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="card">
+    <h1><span class="logo">H</span>HarmonyMall API</h1>
+    <div class="sub">鸿蒙商城毕业设计 · 后端服务（Spring Boot 3.5.4 + MyBatis-Plus + MySQL 8 + Redis）</div>
+    <span class="ok">● 服务运行中</span>
+  </div>
+
+  <div class="card">
+    <div class="grid">
+      <div class="kv"><b>接口文档（Swagger）</b><a href="./swagger-ui/index.html">/api/swagger-ui/index.html</a></div>
+      <div class="kv"><b>上下文路径</b><code>/api</code></div>
+      <div class="kv"><b>演示账号</b><code>zhangsan / 123456</code></div>
+      <div class="kv"><b>响应格式</b><code>{ code, message, data }</code>，<code>code=0</code> 成功，<code>40100</code> 未登录</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h1 style="font-size:16px">接口一览</h1>
+    <table>
+      <tr><th>模块</th><th>路径</th><th>说明</th></tr>
+      <tr><td>认证</td><td class="path">/auth/login · /auth/register</td><td>登录注册，返回 JWT</td></tr>
+      <tr><td>首页</td><td class="path">/home</td><td>横幅 + 分类树 + 推荐商品</td></tr>
+      <tr><td>分类</td><td class="path">/categories</td><td>一二级分类树</td></tr>
+      <tr><td>商品</td><td class="path">/products · /products/{id} · /products/{id}/reviews</td><td>分页搜索 / 详情 / 评价</td></tr>
+      <tr><td>评价</td><td class="path">/reviews</td><td>发表评价（需登录）</td></tr>
+      <tr><td>购物车</td><td class="path">/cart</td><td>增删改查（需登录）</td></tr>
+      <tr><td>订单</td><td class="path">/orders · /orders/{id} · /orders/{id}/pay …</td><td>下单 / 列表 / 详情 / 支付 / 取消 / 收货 / 退款</td></tr>
+      <tr><td>地址</td><td class="path">/address · /address/{id}/default</td><td>地址 CRUD + 设默认</td></tr>
+      <tr><td>用户</td><td class="path">/user/profile · /user/favorites · /user/footprints · /user/messages</td><td>资料 / 收藏 / 足迹 / 消息</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h1 style="font-size:16px">快速验证</h1>
+    <table>
+      <tr><td class="path">GET /api/home</td><td>首页聚合数据</td></tr>
+      <tr><td class="path">GET /api/products?keyword=背包</td><td>商品搜索</td></tr>
+      <tr><td class="path">POST /api/auth/login</td><td>Body：<code>{"username":"zhangsan","password":"123456"}</code></td></tr>
+    </table>
+  </div>
+
+  <div class="foot">HarmonyMall · 毕业设计项目 · 客户端 ArkTS / 服务端 Spring Boot</div>
+</div>
+</body>
+</html>

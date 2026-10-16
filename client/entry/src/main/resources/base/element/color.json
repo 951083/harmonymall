@@ -1,0 +1,36 @@
+{
+  "color": [
+    {
+      "name": "start_window_background",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "primary_color",
+      "value": "#0A59F7"
+    },
+    {
+      "name": "price_color",
+      "value": "#FF3B30"
+    },
+    {
+      "name": "text_primary",
+      "value": "#182431"
+    },
+    {
+      "name": "text_secondary",
+      "value": "#8A9199"
+    },
+    {
+      "name": "bg_page",
+      "value": "#F5F6F8"
+    },
+    {
+      "name": "bg_card",
+      "value": "#FFFFFF"
+    },
+    {
+      "name": "divider",
+      "value": "#EEF0F3"
+    }
+  ]
+}

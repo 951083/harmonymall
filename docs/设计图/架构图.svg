@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="700" viewBox="0 0 1040 700" font-family="Microsoft YaHei, PingFang SC, Segoe UI, sans-serif">
+<defs><marker id="arr" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#475569"/></marker><marker id="arrb" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#2563eb"/></marker><marker id="arro" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#f59e0b"/></marker><marker id="arrg" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#16a34a"/></marker></defs>
+<rect width="1040" height="700" fill="#ffffff"/>
+<rect x="60" y="36" width="920" height="140" rx="14" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+<text x="80" y="66" text-anchor="start" font-size="15" fill="#1e3a8a" font-weight="bold">客户端层 · HarmonyOS App（ArkTS / ArkUI 声明式 UI / Stage 模型）</text>
+<rect x="80" y="84" width="280" height="76" rx="10" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="220.0" y="106" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">页面层 · 19 个页面</text>
+<text x="220.0" y="126" text-anchor="middle" font-size="10.5" fill="#475569">首页 / 分类 / 搜索 / 商品详情</text>
+<text x="220.0" y="141" text-anchor="middle" font-size="10.5" fill="#475569">购物车 / 确认订单 / 订单 / 我的</text>
+<rect x="380" y="84" width="280" height="76" rx="10" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="520.0" y="106" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">公共层</text>
+<text x="520.0" y="126" text-anchor="middle" font-size="10.5" fill="#475569">network：HttpClient + Api（40 接口）</text>
+<text x="520.0" y="141" text-anchor="middle" font-size="10.5" fill="#475569">store：UserStore / AppStorage 登录态</text>
+<rect x="680" y="84" width="280" height="76" rx="10" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="820.0" y="106" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">模型与组件层</text>
+<text x="820.0" y="126" text-anchor="middle" font-size="10.5" fill="#475569">Models：领域对象 + 请求体</text>
+<text x="820.0" y="141" text-anchor="middle" font-size="10.5" fill="#475569">components：EmptyView / LoadingView</text>
+<path d="M500,180 L500,244" fill="none" stroke="#2563eb" stroke-width="1.6" marker-end="url(#arrb)"/>
+<path d="M540,244 L540,180" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arr)"/>
+<text x="560" y="204" text-anchor="start" font-size="11" fill="#475569">REST / JSON over HTTP（请求 ↓ / 响应 ↑）</text>
+<text x="560" y="222" text-anchor="start" font-size="11" fill="#94a3b8">统一响应 {code, message, data} · JWT Bearer</text>
+<rect x="60" y="252" width="920" height="210" rx="14" fill="#eaf0fb" stroke="#bfd3f5" stroke-width="1.4"/>
+<text x="80" y="282" text-anchor="start" font-size="15" fill="#1e3a8a" font-weight="bold">服务端层 · Spring Boot 3.5（JDK 17）</text>
+<rect x="80" y="300" width="280" height="88" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.4"/>
+<text x="220.0" y="324" text-anchor="middle" font-size="14" font-weight="bold" fill="#1e3a8a">Controller × 10</text>
+<text x="220.0" y="344" text-anchor="middle" font-size="11" fill="#475569">40 个 REST 接口</text>
+<text x="220.0" y="360" text-anchor="middle" font-size="11" fill="#475569">参数校验 @Valid · userId 注入</text>
+<rect x="380" y="300" width="280" height="88" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.4"/>
+<text x="520.0" y="324" text-anchor="middle" font-size="14" font-weight="bold" fill="#1e3a8a">Service × 5</text>
+<text x="520.0" y="344" text-anchor="middle" font-size="11" fill="#475569">业务规则 · 事务边界 @Transactional</text>
+<text x="520.0" y="360" text-anchor="middle" font-size="11" fill="#475569">订单 / 购物车 / 商品 / 用户 / 地址</text>
+<rect x="680" y="300" width="280" height="88" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.4"/>
+<text x="820.0" y="324" text-anchor="middle" font-size="14" font-weight="bold" fill="#1e3a8a">Mapper × 16（MyBatis-Plus）</text>
+<text x="820.0" y="344" text-anchor="middle" font-size="11" fill="#475569">CRUD + 分页 + 逻辑删除</text>
+<text x="820.0" y="360" text-anchor="middle" font-size="11" fill="#475569">原子扣库存 · 条件状态流转 SQL</text>
+<rect x="80" y="406" width="880" height="38" rx="8" fill="#fff8e6" stroke="#f59e0b" stroke-width="1.2"/>
+<text x="520" y="430" text-anchor="middle" font-size="11.5" fill="#92400e">横切能力：GlobalExceptionHandler 全局异常 ｜ JwtInterceptor 鉴权 ｜ OrderTask 定时任务（关单 / 退款审核 / 自动收货）</text>
+<path d="M500,462 L500,514" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arr)"/>
+<text x="560" y="484" text-anchor="start" font-size="11" fill="#475569">JDBC（MyBatis-Plus）· Redis 客户端</text>
+<rect x="60" y="520" width="920" height="140" rx="14" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/>
+<text x="80" y="550" text-anchor="start" font-size="15" fill="#1e3a8a" font-weight="bold">数据层与静态资源</text>
+<rect x="80" y="568" width="280" height="76" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.4"/>
+<text x="220.0" y="590" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">MySQL 8 · harmonymall</text>
+<text x="220.0" y="610" text-anchor="middle" font-size="10.5" fill="#475569">16 张表（用户/商品/订单/券…）</text>
+<text x="220.0" y="625" text-anchor="middle" font-size="10.5" fill="#475569">utf8mb4 · 金额存“分” · 逻辑删除</text>
+<rect x="380" y="568" width="280" height="76" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.4"/>
+<text x="520.0" y="590" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">Redis</text>
+<text x="520.0" y="610" text-anchor="middle" font-size="10.5" fill="#475569">商品详情缓存（TTL 30min）</text>
+<text x="520.0" y="625" text-anchor="middle" font-size="10.5" fill="#475569">下单幂等令牌 order:token:*</text>
+<rect x="680" y="568" width="280" height="76" rx="10" fill="#ffffff" stroke="#2563eb" stroke-width="1.4"/>
+<text x="820.0" y="590" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">静态资源 /img/**</text>
+<text x="820.0" y="610" text-anchor="middle" font-size="10.5" fill="#475569">商品图 97 张 · 横幅 7 张 · 头像</text>
+<text x="820.0" y="625" text-anchor="middle" font-size="10.5" fill="#475569">WebMvc 根路径直接托管</text>
+</svg>

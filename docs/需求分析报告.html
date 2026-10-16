@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>需求分析报告</title>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body {
+  margin: 0; padding: 40px 20px 80px;
+  background: #f2f4f7;
+  font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
+  color: #1f2328; font-size: 15px; line-height: 1.75;
+}
+main { max-width: 920px; margin: 0 auto; }
+h1 {
+  font-size: 26px; margin: 0 0 8px; padding-bottom: 14px;
+  border-bottom: 3px solid #2563eb; letter-spacing: .5px;
+}
+h2 {
+  font-size: 20px; margin: 42px 0 14px; padding-left: 10px;
+  border-left: 5px solid #2563eb; background: #eaf0fb;
+  padding-top: 4px; padding-bottom: 4px; border-radius: 0 6px 6px 0;
+}
+h3 { font-size: 17px; margin: 26px 0 10px; color: #1d4ed8; }
+p { margin: 10px 0; }
+blockquote {
+  margin: 14px 0; padding: 10px 16px; background: #fff8e6;
+  border-left: 4px solid #f0b429; border-radius: 0 6px 6px 0; color: #6b5b1e;
+}
+table {
+  border-collapse: collapse; width: 100%; margin: 14px 0 22px;
+  background: #fff; font-size: 14px;
+  box-shadow: 0 1px 3px rgba(16,24,40,.08); border-radius: 8px; overflow: hidden;
+}
+th {
+  background: #2563eb; color: #fff; font-weight: 600; text-align: left;
+  padding: 9px 12px; white-space: nowrap;
+}
+td { padding: 8px 12px; border-bottom: 1px solid #e5e9f0; vertical-align: top; }
+tr:nth-child(even) td { background: #f8fafc; }
+tr:last-child td { border-bottom: none; }
+code {
+  background: #eef1f5; border: 1px solid #dde3ea; border-radius: 4px;
+  padding: 1px 6px; font-size: 13px;
+  font-family: Consolas, "Courier New", monospace; color: #b42318;
+}
+pre { background: #262c36; color: #e6edf3; padding: 14px 16px; border-radius: 8px; overflow-x: auto; }
+pre code { background: none; border: none; color: inherit; padding: 0; }
+ul, ol { padding-left: 26px; }
+li { margin: 4px 0; }
+strong { color: #111827; }
+hr { border: none; border-top: 1px dashed #cbd5e1; margin: 34px 0; }
+a { color: #2563eb; }
+</style>
+</head>
+<body>
+<main>
+<h1>鸿蒙商城毕业设计 · 需求分析报告</h1>
+<blockquote>
+<p>版本：V1.0（初稿，待多轮细化）｜日期：2026-10-14｜适用：郑州经贸学院 计算机科学与技术 本科毕业设计</p>
+</blockquote>
+<hr />
+<h2>1. 项目定位</h2>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>项目名称</td>
+<td>HarmonyMall 鸿蒙商城（暂定）</td>
+</tr>
+<tr>
+<td>项目性质</td>
+<td>本科毕业设计——基于 HarmonyOS 的电商商城应用设计与实现</td>
+</tr>
+<tr>
+<td>一句话描述</td>
+<td>用 ArkTS + 声明式 UI 开发 HarmonyOS 原生商城 App，覆盖"浏览—搜索—加购—下单—支付—订单—评价"完整购物闭环；后端用 Spring Boot 3.5 + MySQL + Redis 提供 REST API</td>
+</tr>
+<tr>
+<td>与已有技能的衔接</td>
+<td>鸿蒙 IM 项目（ArkTS/ArkUI/状态管理/网络封装）+ 企业任务管理系统（Spring Boot 3.5/MyBatis-Plus/Redis）→ 本项目是两个项目的合并升级，客户端框架可整体迁移</td>
+</tr>
+<tr>
+<td>周期假设</td>
+<td>约 14 周（以学校实际安排为准）</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>2. 参考项目调研（官网）</h2>
+<h3>2.1 首选官方参考：华为《购物商城应用案例》（行业解决方案 · 架构设计实践）</h3>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>来源</td>
+<td>华为开发者联盟官网（developer.huawei.com）</td>
+</tr>
+<tr>
+<td>链接</td>
+<td><code>developer.huawei.com/consumer/cn/doc/doccenter-industry-solutions/practice-purchase-app-architecture-v1-0000002077367333</code></td>
+</tr>
+<tr>
+<td>形态</td>
+<td>架构设计实践 + 应用框架代码（非全量业务代码）</td>
+</tr>
+<tr>
+<td>技术范式</td>
+<td>Stage 开发模型 + 声明式 UI 开发范式</td>
+</tr>
+<tr>
+<td>环境要求</td>
+<td>DevEco Studio 6.0.0 Release 及以上；HarmonyOS SDK 6.0.0 Release 及以上；真机系统 HarmonyOS 6.0.0 Release 及以上</td>
+</tr>
+</tbody>
+</table>
+<p><strong>官方模块划分（照搬官网表 1）</strong></p>
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>功能点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>首页</td>
+<td>轮播图、搜索、扫码、以图识物、商品列表</td>
+</tr>
+<tr>
+<td>商品详情</td>
+<td>分享、加入购物车、购买</td>
+</tr>
+<tr>
+<td>购物车</td>
+<td>查看商品、删除商品、修改数量</td>
+</tr>
+<tr>
+<td>订单</td>
+<td>详情、支付</td>
+</tr>
+<tr>
+<td>我的</td>
+<td>订单管理、收货地址、隐私声明、消息、关于、登录/退出</td>
+</tr>
+<tr>
+<td>消息</td>
+<td>查看消息、删除消息</td>
+</tr>
+</tbody>
+</table>
+<p><strong>架构与布局要点（可直接借鉴）</strong></p>
+<ul>
+<li>首页：搜索框 + Banner 轮播 + 快捷入口（金刚区）+ 商品瀑布流（卡片式），底部导航四个入口（首页/消息/购物车/我的）</li>
+<li>响应式布局断点规则：sm 断点 2 列商品 + 1 张轮播；md 断点 3 列 + 2 张；lg 断点 4 列 + 3 张（监听窗口宽度动态切换）</li>
+<li>商品详情页：栅格布局适配不同设备，底部按钮栏用 flexGrow 贴底</li>
+<li>工程化：业务模块采用 <strong>HAR 包</strong>，包大小可控、无独立加载模块场景</li>
+<li>高级能力：以图识物 = Vision Kit AI 识图（OCR/主体分割/实体识别）；地址智能填充 = Scenario Fusion Kit（剪贴板识别、华为账号一键填充）——<strong>作为 P2 加分项参考，不必强求</strong></li>
+</ul>
+<p><strong>局限</strong>：只有框架代码，没有业务后端与真实数据流；需自行补齐业务逻辑。</p>
+<h3>2.2 官方 Codelab 参考：《基于状态管理 V2-实现购物车场景》</h3>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>链接</td>
+<td><code>developer.huawei.com/consumer/cn/codelabsPortal/carddetails/tutorials_shopping-cart-v2</code></td>
+</tr>
+<tr>
+<td>价值</td>
+<td>购物车"数量增减/删除/结算统计"的官方标准实现</td>
+</tr>
+<tr>
+<td>覆盖装饰器</td>
+<td>@ComponentV2、@Param、@Provider、@Consumer、@ObservedV2、@Trace、@Event、@Local、@Computed、@Monitor</td>
+</tr>
+<tr>
+<td>环境</td>
+<td>DevEco Studio 6.0.2 Release 及以上；系统 5.0.5 Release 及以上</td>
+</tr>
+</tbody>
+</table>
+<p><strong>用法</strong>：本项目购物车/订单等复杂对象联动场景，直接按此 Codelab 的 V2 范式写，论文里可作为"状态管理设计"章节素材。</p>
+<h3>2.3 社区参考（代码级，仅作阅读样板）</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>来源</th>
+<th>完成度</th>
+<th>技术栈</th>
+<th>对本项目价值</th>
+<th>注意点</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>青商城 CoolMallArkTS</td>
+<td>GitHub/Gitee：<code>Joker-x-dev/CoolMallArkTS</code></td>
+<td>高（2026-02 仍在更新）</td>
+<td>ArkTS + ArkUI + MVVM + Navigation + V2 状态管理 + Axios(ohpm) + 本地 ORM</td>
+<td>功能模块清单最全（认证/商品/订单/地址/足迹/评价/优惠券/物流），附在线 API 文档（coolmall.apifox.cn）；工程结构 = AppScope + entry + core + feature 分包</td>
+<td>个人作品，部分模块"仅页面"；代码只作阅读参考，<strong>必须自己重写</strong></td>
+</tr>
+<tr>
+<td>ArkTsShop</td>
+<td>GitHub：<code>Musicys/ArktsShop</code></td>
+<td>低（3 天实训壳）</td>
+<td>Spring Boot + ArkTS</td>
+<td>"鸿蒙端 + Spring Boot 后端"全栈结构的落地样板，含 SQL 与接口文档（/api/doc.html）</td>
+<td>后端为 JDK 1.8 老版本，<strong>参考结构即可，后端用自己的 Spring Boot 3.5 重写</strong></td>
+</tr>
+</tbody>
+</table>
+<h3>2.4 参考策略结论</h3>
+<table>
+<thead>
+<tr>
+<th>学什么</th>
+<th>找谁学</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>架构分层、模块划分、一多布局断点</td>
+<td>华为官方案例（2.1）</td>
+</tr>
+<tr>
+<td>购物车/复杂状态联动</td>
+<td>官方 Codelab V2（2.2）</td>
+</tr>
+<tr>
+<td>页面组织、目录分包、接口契约</td>
+<td>青商城 + ArkTsShop（2.3）</td>
+</tr>
+<tr>
+<td>红线</td>
+<td>开源代码只读不改；毕业设计代码须自行编写并通过查重</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>3. 系统范围与角色</h2>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>说明</th>
+<th>是否必做</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>买家（C 端用户）</td>
+<td>注册登录、逛商品、加购、下单支付、管订单、评价</td>
+<td>必做</td>
+</tr>
+<tr>
+<td>商家/管理员</td>
+<td>商品/分类/订单/用户管理</td>
+<td>选做（最小化）</td>
+</tr>
+<tr>
+<td>系统</td>
+<td>模拟支付、本地通知、数据初始化</td>
+<td>必做</td>
+</tr>
+</tbody>
+</table>
+<p><strong>范围边界（毕设标准做法）</strong></p>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>决策</th>
+<th>理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>支付</td>
+<td>模拟支付（前端收银台 + 后端订单状态流转）</td>
+<td>真实支付需企业资质</td>
+</tr>
+<tr>
+<td>物流</td>
+<td>模拟物流轨迹（静态节点）</td>
+<td>无真实物流接口</td>
+</tr>
+<tr>
+<td>消息推送</td>
+<td>站内消息 + 本地通知（NotificationKit）</td>
+<td>免推送服务端资质</td>
+</tr>
+<tr>
+<td>管理端</td>
+<td>轻量 Web 页（可复用你的 Vue3）或 SQL 直接初始化数据</td>
+<td>控制工作量</td>
+</tr>
+<tr>
+<td>设备</td>
+<td>手机必做；折叠屏/平板断点适配应做；服务卡片/跨设备流转加分</td>
+<td>一多适配是鸿蒙特色，答辩加分</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>4. 功能需求</h2>
+<h3>4.1 功能结构</h3>
+<ul>
+<li>买家端：启动引导 → 登录注册 →（首页 / 分类 / 搜索 / 商品详情 / 购物车 / 确认订单 / 支付 / 订单）→ 个人中心 →（地址 / 收藏 / 足迹 / 评价 / 消息 / 设置）</li>
+<li>管理端（选做）：商品管理、订单管理、用户管理、数据统计</li>
+<li>鸿蒙特色（P2）：服务卡片、跨设备流转、深浅色/中英文</li>
+</ul>
+<h3>4.2 功能清单</h3>
+<p>优先级：<strong>P0 必须</strong> / P1 重要 / P2 加分</p>
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>功能点</th>
+<th>优先级</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>启动引导</td>
+<td>闪屏页、引导页（3 页轮播）、登录态检查</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>登录注册</td>
+<td>账号密码登录、注册、短信验证码（mock）、JWT token、自动登录</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>首页</td>
+<td>搜索框、分类金刚区、Banner 轮播（Swiper）、商品瀑布流（WaterFlow）、下拉刷新</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>分类</td>
+<td>一级/二级分类树、分类跳商品列表</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>搜索</td>
+<td>历史搜索（本地持久化）、热门搜索、结果排序（综合/销量/价格升降序）</td>
+<td>P0（排序 P1）</td>
+</tr>
+<tr>
+<td>商品详情</td>
+<td>图集、SKU 规格选择（颜色/尺码）、价格库存联动、富文本详情、收藏、分享、加购/立即购买</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>购物车</td>
+<td>商品列表、数量步进、单选/全选、失效商品、价格合计、结算</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>订单</td>
+<td>确认订单（地址/优惠券/备注）、下单、模拟支付、订单列表（状态 Tab）、订单详情、取消、确认收货、退款申请</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>地址管理</td>
+<td>增删改查、默认地址、剪贴板智能填充（Scenario Fusion Kit）</td>
+<td>P0（智能填充 P2）</td>
+</tr>
+<tr>
+<td>个人中心</td>
+<td>头像/昵称编辑（相机/相册权限）、我的订单入口、收藏夹、浏览足迹、优惠券、设置（深色模式/清缓存/退出）</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>评价</td>
+<td>订单评价（评分+文字+图片）、商品详情页展示评价列表</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>消息</td>
+<td>站内消息列表、本地通知（下单成功提醒）</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>鸿蒙特色</td>
+<td>服务卡片（FormKit）、跨设备流转/分布式数据、一多断点适配、深浅色</td>
+<td>P2（一多适配 P1）</td>
+</tr>
+</tbody>
+</table>
+<h3>4.3 核心流程（验收主线）</h3>
+<p>登录 → 首页浏览 → 搜索/分类找商品 → 商品详情选 SKU → 加入购物车 → 购物车结算 → 确认订单（选地址）→ 模拟支付 → 订单列表查看 → 确认收货 → 发表评价</p>
+<h3>4.4 订单状态机</h3>
+<p>待付款 →（支付）→ 待发货 →（后台发货）→ 待收货 →（确认收货）→ 已完成
+待付款 →（取消/超时）→ 已取消；已付款 →（申请退款）→ 退款中 → 已退款</p>
+<hr />
+<h2>5. 非功能需求</h2>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>要求</th>
+<th>指标/说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>兼容性</td>
+<td>HarmonyOS NEXT（系统 5.0+，API 12+）；官方案例要求 DevEco Studio 6.0.0+/SDK 6.0.0+</td>
+<td>以 DevEco 实际可用 SDK 与真机系统为准，compileSdk ≥ 真机 API 版本</td>
+</tr>
+<tr>
+<td>一多适配</td>
+<td>手机竖屏为主；折叠屏/平板按断点切换列数</td>
+<td>复用官方案例断点规则（sm 2 列/md 3 列/lg 4 列）</td>
+</tr>
+<tr>
+<td>性能</td>
+<td>冷启动 ≤ 2s；首屏 ≤ 1.5s；滑动 ≥ 55fps</td>
+<td>列表用 LazyForEach + 组件复用；图片懒加载/缓存</td>
+</tr>
+<tr>
+<td>安全</td>
+<td>token 过期（2h）+ 刷新机制；密码 BCrypt；权限最小化</td>
+<td>不上传真实个人信息到公网</td>
+</tr>
+<tr>
+<td>体验</td>
+<td>统一加载态/空态/错误态；下拉刷新/上拉加载；点击区域 ≥ 40vp</td>
+<td>骨架屏 P2</td>
+</tr>
+<tr>
+<td>可维护</td>
+<td>entry + core + feature 分包；网络层统一封装；主题/资源集中</td>
+<td>参照青商城工程结构</td>
+</tr>
+<tr>
+<td>测试</td>
+<td>核心链路测试用例 ≥ 15 条</td>
+<td>工具类/页面 UI 测试 P2</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>6. 技术方案</h2>
+<h3>6.1 总体架构</h3>
+<ul>
+<li>客户端：HarmonyOS App（ArkTS + ArkUI 声明式 UI + Stage 模型）</li>
+<li>通信：RESTful + JSON over HTTP（统一响应体 <code>{code, message, data}</code>）</li>
+<li>服务端：Spring Boot 3.5 + Spring Security(JWT) + MyBatis-Plus + MySQL 8 + Redis</li>
+<li>管理端（选做）：轻量 Web（Vue3）</li>
+<li>加分项：服务卡片 / 跨设备流转（需真机 + 分布式签名）</li>
+</ul>
+<h3>6.2 客户端技术选型</h3>
+<table>
+<thead>
+<tr>
+<th>领域</th>
+<th>选型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>语言/UI</td>
+<td>ArkTS + ArkUI 声明式</td>
+<td>官方主推，FA 模型已废弃</td>
+</tr>
+<tr>
+<td>应用模型</td>
+<td>Stage（UIAbility 生命周期）</td>
+<td>官方案例同款</td>
+</tr>
+<tr>
+<td>路由</td>
+<td>Navigation（支持一多双栏）</td>
+<td>@ohos.router 备选</td>
+</tr>
+<tr>
+<td>状态管理</td>
+<td>V1（@State/@Prop/@Link/@Observed + AppStorage/LocalStorage）+ V2（@ObservedV2/@ObjectLink/@Provider/@Consumer + AppStorageV2）</td>
+<td>购物车等复杂对象联动用 V2（有官方 Codelab 范本）</td>
+</tr>
+<tr>
+<td>网络</td>
+<td>@ohos.net.http 自封装（拦截器/泛型解析/统一错误码/loading）</td>
+<td>NEXT 生态三方库少，自封装最稳；IM 项目可直接迁移</td>
+</tr>
+<tr>
+<td>本地存储</td>
+<td>preferences（token/搜索历史/主题）+ relational store（足迹/购物车兜底）</td>
+<td>@kit.ArkData</td>
+</tr>
+<tr>
+<td>图片</td>
+<td>Image 组件 + 占位/失败态</td>
+<td>网络图片注意权限声明</td>
+</tr>
+<tr>
+<td>交互组件</td>
+<td>Swiper、WaterFlow、Tabs、自定义 Dialog/Popup、属性动画</td>
+<td></td>
+</tr>
+<tr>
+<td>支付</td>
+<td>模拟支付（收银台页 + 后端状态流转）</td>
+<td>真实支付需企业资质</td>
+</tr>
+<tr>
+<td>通知</td>
+<td>NotificationKit 本地通知</td>
+<td>免推送资质</td>
+</tr>
+<tr>
+<td>分布式（P2）</td>
+<td>FormKit 服务卡片；分布式数据/跨设备流转</td>
+<td>需真机 + 分布式签名，无真机则写成设计说明</td>
+</tr>
+</tbody>
+</table>
+<h3>6.3 服务端技术选型</h3>
+<table>
+<thead>
+<tr>
+<th>领域</th>
+<th>选型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>框架</td>
+<td>Spring Boot 3.5（JDK 17+）+ Spring Security + JWT</td>
+</tr>
+<tr>
+<td>持久层</td>
+<td>MyBatis-Plus（逻辑删除/自动填充/分页）</td>
+</tr>
+<tr>
+<td>数据库</td>
+<td>MySQL 8</td>
+</tr>
+<tr>
+<td>缓存</td>
+<td>Redis（商品详情/分类树/验证码/首页聚合）</td>
+</tr>
+<tr>
+<td>接口文档</td>
+<td>SpringDoc/OpenAPI（/doc.html）</td>
+</tr>
+<tr>
+<td>规范</td>
+<td>统一响应体 + 全局异常处理 + 参数校验</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>7. 数据设计（概要）</h2>
+<table>
+<thead>
+<tr>
+<th>表名</th>
+<th>关键字段</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>t_user</td>
+<td>id, username, password(BCrypt), phone, nickname, avatar</td>
+<td>用户</td>
+</tr>
+<tr>
+<td>t_address</td>
+<td>id, user_id, receiver, phone, province/city/district, detail, is_default</td>
+<td>收货地址</td>
+</tr>
+<tr>
+<td>t_category</td>
+<td>id, parent_id, name, level, icon, sort</td>
+<td>分类树</td>
+</tr>
+<tr>
+<td>t_product</td>
+<td>id, category_id, name, subtitle, main_image, detail(富文本)</td>
+<td>商品 SPU</td>
+</tr>
+<tr>
+<td>t_product_sku</td>
+<td>id, product_id, specs(JSON), price, stock, image</td>
+<td>SKU 规格</td>
+</tr>
+<tr>
+<td>t_cart_item</td>
+<td>id, user_id, sku_id, quantity, selected</td>
+<td>购物车项</td>
+</tr>
+<tr>
+<td>t_order</td>
+<td>id, order_no, user_id, total_amount, pay_amount, address_snapshot(JSON), remark, status, pay_time, ship_time</td>
+<td>订单主表</td>
+</tr>
+<tr>
+<td>t_order_item</td>
+<td>id, order_id, sku_id, product_snapshot(JSON), price, quantity</td>
+<td>订单明细</td>
+</tr>
+<tr>
+<td>t_user_coupon</td>
+<td>id, user_id, name, amount, threshold, status, expire_time</td>
+<td>用户优惠券</td>
+</tr>
+<tr>
+<td>t_favorite</td>
+<td>id, user_id, sku_id, created_at</td>
+<td>收藏</td>
+</tr>
+<tr>
+<td>t_footprint</td>
+<td>id, user_id, sku_id, viewed_at</td>
+<td>浏览足迹</td>
+</tr>
+<tr>
+<td>t_review</td>
+<td>id, order_item_id, user_id, sku_id, rating, content, images(JSON)</td>
+<td>评价</td>
+</tr>
+<tr>
+<td>t_banner</td>
+<td>id, image, link_type, link_value, sort</td>
+<td>首页轮播</td>
+</tr>
+<tr>
+<td>t_message</td>
+<td>id, user_id, title, content, type, is_read</td>
+<td>站内消息</td>
+</tr>
+</tbody>
+</table>
+<p>关键关系：order 1—n order_item → sku；cart_item 唯一约束 (user_id, sku_id)；category 自关联树。</p>
+<hr />
+<h2>8. 接口设计（概要）</h2>
+<table>
+<thead>
+<tr>
+<th>方法与路径</th>
+<th>说明</th>
+<th>优先级</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POST /api/auth/login</td>
+<td>账号密码登录，返回 token</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>POST /api/auth/register</td>
+<td>注册</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>POST /api/auth/sms/code</td>
+<td>发送验证码（Redis 存储，mock）</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>GET /api/home</td>
+<td>首页聚合（banner + 金刚区 + 推荐商品）</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>GET /api/categories</td>
+<td>分类树</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>GET /api/products?keyword&amp;categoryId&amp;sort&amp;page&amp;size</td>
+<td>商品搜索/列表</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>GET /api/products/{id}</td>
+<td>商品详情 + SKU 列表</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>GET /api/products/{id}/reviews</td>
+<td>评价列表</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>POST /api/reviews</td>
+<td>发表评价（校验已购）</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>GET/POST /api/cart</td>
+<td>购物车查询/加入</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>PUT /api/cart/{id}｜DELETE /api/cart/{id}</td>
+<td>改数量/选中/删除</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>GET/POST /api/address；PUT/DELETE /api/address/{id}</td>
+<td>地址管理</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>POST /api/orders</td>
+<td>创建订单</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>GET /api/orders?status&amp;page</td>
+<td>订单列表</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>GET /api/orders/{id}</td>
+<td>订单详情</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>POST /api/orders/{id}/pay｜/cancel｜/confirm｜/refund</td>
+<td>支付/取消/确认收货/退款</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>GET/PUT /api/user/profile</td>
+<td>个人信息</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>GET /api/favorites；POST/DELETE /api/favorites/{skuId}</td>
+<td>收藏</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>GET /api/footprints</td>
+<td>足迹</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>GET /api/messages；PUT /api/messages/{id}/read</td>
+<td>站内消息</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>/api/admin/**</td>
+<td>管理端（选做）</td>
+<td>P2</td>
+</tr>
+</tbody>
+</table>
+<p>约定：请求头 <code>Authorization: Bearer &lt;token&gt;</code>；错误码 40100 未登录、20000 参数错误、50000 系统异常。</p>
+<hr />
+<h2>9. 用户任务清单（你需要做什么）</h2>
+<h3>9.1 分阶段计划</h3>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>周次</th>
+<th>你要完成的事</th>
+<th>交付物</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P0 立项</td>
+<td>第 1 周</td>
+<td>装 DevEco Studio（按官网 ≥6.0.0）；注册华为开发者账号；下载官方案例框架代码跑通；确定 SDK/真机版本策略</td>
+<td>环境就绪 + 运行截图</td>
+</tr>
+<tr>
+<td>P1 需求设计</td>
+<td>第 2 周</td>
+<td>把本文档细化为《需求规格说明书》；画用例图、订单状态图；完成数据库 ER 设计</td>
+<td>需求规格说明书 + ER 图</td>
+</tr>
+<tr>
+<td>P2 后端</td>
+<td>第 3–4 周</td>
+<td>建库建表（SQL 脚本）；认证/商品/分类/首页/购物车/订单/地址/评价接口；Redis 缓存；JWT 鉴权；接口自测</td>
+<td>后端源码 + API 文档 + Postman 集合</td>
+</tr>
+<tr>
+<td>P3 客户端框架</td>
+<td>第 5 周</td>
+<td>搭工程结构（entry/core/feature）；迁移 IM 项目的网络层封装；路由；全局状态；公共组件（加载/空态/Toast）</td>
+<td>可运行的空壳工程</td>
+</tr>
+<tr>
+<td>P4 核心页面</td>
+<td>第 6–8 周</td>
+<td>启动/登录 → 首页/分类/搜索 → 商品详情 → 购物车 → 确认订单/支付 → 订单列表/详情；逐页联调</td>
+<td>核心流程可完整演示</td>
+</tr>
+<tr>
+<td>P5 完善</td>
+<td>第 9–10 周</td>
+<td>地址/收藏/足迹/评价/消息/个人中心；深色模式；一多断点适配</td>
+<td>功能完整版</td>
+</tr>
+<tr>
+<td>P6 亮点+测试</td>
+<td>第 11 周</td>
+<td>服务卡片或跨设备流转（二选一）；核心流程回归测试；性能自查</td>
+<td>亮点功能 + 测试记录</td>
+</tr>
+<tr>
+<td>P7 论文答辩</td>
+<td>第 12–14 周</td>
+<td>论文（需求分析/系统设计/实现/测试）；PPT；演示视频；查重</td>
+<td>论文终稿 + 答辩 PPT</td>
+</tr>
+</tbody>
+</table>
+<h3>9.2 分工边界</h3>
+<table>
+<thead>
+<tr>
+<th>只有你能做</th>
+<th>我可以协助</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>环境安装与真机调试</td>
+<td>文档迭代（需求规格说明/设计文档/论文结构与素材）</td>
+</tr>
+<tr>
+<td>亲手编码（毕业设计规范要求）</td>
+<td>数据库 SQL、接口契约（OpenAPI 风格）</td>
+</tr>
+<tr>
+<td>论文写作与查重</td>
+<td>ArkTS 页面脚手架、公共组件代码片段</td>
+</tr>
+<tr>
+<td>答辩准备与演练</td>
+<td>联调排错、测试用例设计</td>
+</tr>
+</tbody>
+</table>
+<h3>9.3 本周立即开始的 3 件事</h3>
+<ol>
+<li>安装 DevEco Studio，确认可用 SDK 版本（对照官网 ≥6.0.0 要求）</li>
+<li>下载华为官方案例框架代码，成功编译运行到模拟器/真机</li>
+<li>确认学校毕设时间表与论文模板（见第 11 节问题清单）</li>
+</ol>
+<hr />
+<h2>10. 风险与对策</h2>
+<table>
+<thead>
+<tr>
+<th>风险</th>
+<th>对策</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DevEco/SDK 版本装不到官网要求</td>
+<td>退而求其次：保证 API 12+，compileSdk ≥ 真机系统 API；论文中说明版本策略</td>
+</tr>
+<tr>
+<td>模拟器白屏/无法联网</td>
+<td>检查 module.json5 声明 ohos.permission.INTERNET；后端地址用局域网 IP，不用 localhost</td>
+</tr>
+<tr>
+<td>ohpm 依赖拉取慢</td>
+<td>配置国内镜像源；优先用系统能力，少引三方库</td>
+</tr>
+<tr>
+<td>分布式能力做不了</td>
+<td>需真机 + 分布式签名；没有就降级为"设计说明"写入论文</td>
+</tr>
+<tr>
+<td>真实支付/推送不可用</td>
+<td>一律模拟实现，论文中说明取舍原因</td>
+</tr>
+<tr>
+<td>时间不足</td>
+<td>P0 优先，P2 果断砍；核心流程跑通就是胜利</td>
+</tr>
+<tr>
+<td>查重不过</td>
+<td>代码自己写，论文自己组织语言，不抄开源 README</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>11. 待确认问题（下一轮迭代）</h2>
+<ol>
+<li>毕设起止时间、开题/中期/答辩各节点？论文是否学校 Word 模板？</li>
+<li>是否要求包含后端 + 管理端，还是纯鸿蒙端 + 本地数据也可？</li>
+<li>是否有真机（系统版本）？是否有平板/折叠屏可测一多？</li>
+<li>论文是否需要英文摘要与外文翻译？</li>
+<li>单人还是组队？若组队，前后端如何分工？</li>
+</ol>
+</main>
+</body>
+</html>

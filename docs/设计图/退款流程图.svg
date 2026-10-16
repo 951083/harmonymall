@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="790" viewBox="0 0 880 790" font-family="Microsoft YaHei, PingFang SC, Segoe UI, sans-serif">
+<defs><marker id="arr" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#475569"/></marker><marker id="arrb" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#2563eb"/></marker><marker id="arro" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#f59e0b"/></marker><marker id="arrg" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#16a34a"/></marker></defs>
+<rect width="880" height="790" fill="#ffffff"/>
+<text x="40" y="30" text-anchor="start" font-size="13" fill="#1f2328" font-weight="bold">退款流程（两步走：申请 → 退款中 → 已退款）</text>
+<rect x="200" y="50" width="480" height="52" rx="10" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="440.0" y="81" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">用户选择退款原因（端上弹层）</text>
+<rect x="200" y="130" width="480" height="52" rx="10" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="440.0" y="161" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">POST /api/orders/{id}/refund</text>
+<rect x="200" y="210" width="480" height="52" rx="10" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="440.0" y="241" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">条件更新：status 1/2 → 5 退款中（记录退款原因）</text>
+<rect x="200" y="290" width="480" height="52" rx="10" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.4"/>
+<text x="440.0" y="321" text-anchor="middle" font-size="13" font-weight="bold" fill="#92400e">端上显示「退款中」</text>
+<path d="M440.0,102 L440.0,130" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M440.0,182 L440.0,210" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M440.0,262 L440.0,290" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M60,380 L820,380" fill="none" stroke="#cbd5e1" stroke-width="1.6" stroke-dasharray="6,5"/>
+<text x="820" y="370" text-anchor="end" font-size="11.5" fill="#92400e">OrderTask · 每 20 秒扫描一次</text>
+<rect x="200" y="420" width="480" height="52" rx="10" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="440.0" y="451" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">扫描全部「退款中」订单（模拟商家审核）</text>
+<rect x="200" y="500" width="480" height="52" rx="10" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="440.0" y="531" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">条件更新：status 5 → 6 已退款（记录退款时间）</text>
+<rect x="200" y="580" width="480" height="52" rx="10" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="440.0" y="611" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">回滚库存 / 销量 / 优惠券</text>
+<rect x="200" y="660" width="480" height="52" rx="10" fill="#ecfdf5" stroke="#16a34a" stroke-width="1.4"/>
+<text x="440.0" y="691" text-anchor="middle" font-size="13" font-weight="bold" fill="#14532d">端上显示「已退款 + 退款原因 + 退款时间」</text>
+<path d="M440.0,472 L440.0,500" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M440.0,552 L440.0,580" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M440.0,632 L440.0,660" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arr)"/>
+<text x="700" y="236" text-anchor="start" font-size="10" fill="#475569">仅「待发货 / 待收货」</text>
+<text x="700" y="251" text-anchor="start" font-size="10" fill="#475569">可申请；重复申请被</text>
+<text x="700" y="266" text-anchor="start" font-size="10" fill="#475569">状态守卫拒绝</text>
+<text x="700" y="526" text-anchor="start" font-size="10" fill="#475569">条件更新保证一笔</text>
+<text x="700" y="541" text-anchor="start" font-size="10" fill="#475569">退款只会被处理一次</text>
+<text x="440" y="752" text-anchor="middle" font-size="11.5" fill="#475569">「退款中 → 已退款」由后端定时任务自动完成，端上重进页面即可看到最终状态</text>
+</svg>

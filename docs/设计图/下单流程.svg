@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="810" viewBox="0 0 880 810" font-family="Microsoft YaHei, PingFang SC, Segoe UI, sans-serif">
+<defs><marker id="arr" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#475569"/></marker><marker id="arrb" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#2563eb"/></marker><marker id="arro" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#f59e0b"/></marker><marker id="arrg" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#16a34a"/></marker></defs>
+<rect width="880" height="810" fill="#ffffff"/>
+<text x="40" y="30" text-anchor="start" font-size="13" fill="#1f2328" font-weight="bold">POST /api/orders —— 事务内多步校验与写入，任一环节失败整单回滚（@Transactional）</text>
+<rect x="90" y="40" width="470" height="52" rx="10" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="325.0" y="71" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">① 提交订单（端上生成 clientToken）</text>
+<rect x="90" y="130" width="470" height="52" rx="10" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="325.0" y="161" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">② 幂等检查：Redis setIfAbsent(order:token)</text>
+<rect x="90" y="220" width="470" height="52" rx="10" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="325.0" y="251" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">③ 校验购物车项与地址归属</text>
+<rect x="90" y="310" width="470" height="52" rx="10" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="325.0" y="341" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">④ 逐项原子扣库存：stock = stock - qty，WHERE stock ≥ qty</text>
+<rect x="90" y="400" width="470" height="52" rx="10" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="325.0" y="431" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">⑤ 优惠券校验 + 条件锁定（status 1→0）</text>
+<rect x="90" y="490" width="470" height="52" rx="10" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="325.0" y="521" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">⑥ 生成订单与明细，原子累加销量</text>
+<rect x="90" y="580" width="470" height="52" rx="10" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="325.0" y="611" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e3a8a">⑦ 删除已结算购物车项</text>
+<rect x="90" y="670" width="470" height="52" rx="10" fill="#ecfdf5" stroke="#16a34a" stroke-width="1.4"/>
+<text x="325.0" y="701" text-anchor="middle" font-size="13" font-weight="bold" fill="#14532d">⑧ 下单成功，返回订单（status=0 待付款）</text>
+<rect x="610" y="130" width="240" height="52" rx="10" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.4"/>
+<text x="730.0" y="161" text-anchor="middle" font-size="12" font-weight="bold" fill="#92400e">已提交过 → 拒绝「请勿重复操作」</text>
+<rect x="610" y="220" width="240" height="52" rx="10" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.4"/>
+<text x="730.0" y="251" text-anchor="middle" font-size="12" font-weight="bold" fill="#92400e">部分项已失效 → 拒绝结算</text>
+<rect x="610" y="310" width="240" height="52" rx="10" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.4"/>
+<text x="730.0" y="341" text-anchor="middle" font-size="12" font-weight="bold" fill="#92400e">受影响行数 = 0 → 「库存不足」</text>
+<rect x="610" y="400" width="240" height="52" rx="10" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.4"/>
+<text x="730.0" y="431" text-anchor="middle" font-size="12" font-weight="bold" fill="#92400e">券不可用 → 拒绝并回滚</text>
+<path d="M325.0,92 L325.0,130" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M325.0,182 L325.0,220" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M325.0,272 L325.0,310" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M325.0,362 L325.0,400" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M325.0,452 L325.0,490" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M325.0,542 L325.0,580" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M325.0,632 L325.0,670" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arr)"/>
+<path d="M560,156.0 L606,156.0" fill="none" stroke="#f59e0b" stroke-width="1.6" marker-end="url(#arro)" stroke-dasharray="5,4"/>
+<path d="M560,246.0 L606,246.0" fill="none" stroke="#f59e0b" stroke-width="1.6" marker-end="url(#arro)" stroke-dasharray="5,4"/>
+<path d="M560,336.0 L606,336.0" fill="none" stroke="#f59e0b" stroke-width="1.6" marker-end="url(#arro)" stroke-dasharray="5,4"/>
+<path d="M560,426.0 L606,426.0" fill="none" stroke="#f59e0b" stroke-width="1.6" marker-end="url(#arro)" stroke-dasharray="5,4"/>
+<text x="440" y="762" text-anchor="middle" font-size="12" fill="#dc2626" font-weight="bold">任一环节失败 → 事务回滚：库存 / 销量 / 优惠券 / 订单全部不落库</text>
+<text x="440" y="784" text-anchor="middle" font-size="11" fill="#475569">并发下「④ 条件更新」「⑤ 条件锁定」由数据库行级互斥保证不会超卖、不会一券两单</text>
+</svg>

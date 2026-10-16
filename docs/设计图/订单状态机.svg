@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560" font-family="Microsoft YaHei, PingFang SC, Segoe UI, sans-serif">
+<defs><marker id="arr" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#475569"/></marker><marker id="arrb" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#2563eb"/></marker><marker id="arro" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#f59e0b"/></marker><marker id="arrg" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="#16a34a"/></marker></defs>
+<rect width="960" height="560" fill="#ffffff"/>
+<text x="40" y="32" text-anchor="start" font-size="14" fill="#1f2328" font-weight="bold">订单状态机（status：0~6）</text>
+<rect x="380" y="50" width="160" height="64" rx="12" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="460.0" y="74" text-anchor="middle" font-size="14" font-weight="bold" fill="#1e3a8a">0 · 待付款</text>
+<rect x="380" y="170" width="160" height="64" rx="12" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="460.0" y="194" text-anchor="middle" font-size="14" font-weight="bold" fill="#1e3a8a">1 · 待发货</text>
+<rect x="380" y="290" width="160" height="64" rx="12" fill="#eaf0fb" stroke="#2563eb" stroke-width="1.4"/>
+<text x="460.0" y="314" text-anchor="middle" font-size="14" font-weight="bold" fill="#1e3a8a">2 · 待收货</text>
+<rect x="380" y="410" width="160" height="64" rx="12" fill="#ecfdf5" stroke="#16a34a" stroke-width="1.4"/>
+<text x="460.0" y="434" text-anchor="middle" font-size="14" font-weight="bold" fill="#14532d">3 · 已完成</text>
+<rect x="120" y="170" width="160" height="64" rx="12" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.4"/>
+<text x="200.0" y="194" text-anchor="middle" font-size="14" font-weight="bold" fill="#475569">4 · 已取消</text>
+<rect x="700" y="230" width="160" height="64" rx="12" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.4"/>
+<text x="780.0" y="254" text-anchor="middle" font-size="14" font-weight="bold" fill="#92400e">5 · 退款中</text>
+<rect x="700" y="380" width="160" height="64" rx="12" fill="#ecfdf5" stroke="#16a34a" stroke-width="1.4"/>
+<text x="780.0" y="404" text-anchor="middle" font-size="14" font-weight="bold" fill="#14532d">6 · 已退款</text>
+<path d="M460,114 L460,166" fill="none" stroke="#2563eb" stroke-width="1.6" marker-end="url(#arrb)"/>
+<text x="474" y="144" text-anchor="start" font-size="11" fill="#1e3a8a">支付</text>
+<path d="M460,234 L460,286" fill="none" stroke="#2563eb" stroke-width="1.6" marker-end="url(#arrb)"/>
+<text x="474" y="264" text-anchor="start" font-size="11" fill="#1e3a8a">模拟商家发货</text>
+<path d="M460,354 L460,406" fill="none" stroke="#2563eb" stroke-width="1.6" marker-end="url(#arrb)"/>
+<text x="474" y="384" text-anchor="start" font-size="11" fill="#1e3a8a">确认收货 / 发货超 7 天自动</text>
+<path d="M380,90 L200,90 L200,166" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arr)"/>
+<text x="290" y="80" text-anchor="middle" font-size="11" fill="#475569">取消 / 超时 30 分钟自动</text>
+<path d="M540,202 L780,202 L780,226" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arr)"/>
+<text x="662" y="192" text-anchor="middle" font-size="11" fill="#475569">申请退款</text>
+<path d="M540,322 L660,322 L660,262 L696,262" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#arr)"/>
+<text x="600" y="344" text-anchor="middle" font-size="11" fill="#475569">申请退款</text>
+<path d="M780,294 L780,376" fill="none" stroke="#f59e0b" stroke-width="1.6" marker-end="url(#arro)"/>
+<text x="794" y="340" text-anchor="start" font-size="11" fill="#92400e">商家审核通过（定时任务）</text>
+<text x="200" y="262" text-anchor="middle" font-size="10.5" fill="#475569">回滚库存 / 销量 / 券</text>
+<text x="780" y="468" text-anchor="middle" font-size="10.5" fill="#475569">回滚库存 / 销量 / 券</text>
+</svg>
